@@ -1,0 +1,1 @@
+# QGIS2API-CNIG
