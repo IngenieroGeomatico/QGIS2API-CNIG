@@ -23,13 +23,16 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QWidget, QDialog
 
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
 from .QGIS2APICNIG_dialog import QGIS2APICNIGDialog
 import os.path
+
+# Importación cosas pyQGIS
+from qgis.core import QgsProject, QgsMapLayer, QgsWkbTypes
 
 
 class QGIS2APICNIG:
@@ -191,6 +194,11 @@ class QGIS2APICNIG:
 
         # show the dialog
         self.dlg.show()
+
+        # Carga de funciones propias del complemento
+        self.loadLayers()
+
+
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed
@@ -198,3 +206,38 @@ class QGIS2APICNIG:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
             pass
+
+    
+    def loadLayers(self):
+        """
+            Load layers in table
+        """
+
+        class NewDialog(QDialog):
+            def __init__(self, parent=None):
+                super().__init__(parent=parent)
+
+        def open_new_dialog():
+            a = NewDialog()
+            
+            a.exec_()
+            a.show()
+
+        boton = self.dlg.pushButton_SelectLayers
+        boton.clicked.connect(open_new_dialog)
+        
+
+        for layer in QgsProject.instance().mapLayers().values():
+            from console import console
+            console.show_console()
+            print(layer, layer.type() )
+
+        # self.dlg.comboBox_Layers.clear()
+        # self.dlg.comboBox_Layers.addItem(self.tr("--- Selecciona capas a cargar en visualizador ---"))
+        # for layer in QgsProject.instance().mapLayers().values():
+        #     from console import console
+        #     console.show_console()
+        #     print(layer.type() )
+        #     if layer.type() == QgsMapLayer.VectorLayer:
+        #         if layer.geometryType() == QgsWkbTypes.PointGeometry:
+        #             self.dlg.comboBox_Layers.addItem(layer.name())
