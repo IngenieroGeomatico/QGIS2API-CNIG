@@ -23,7 +23,7 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QWidget, QDialog
+from qgis.PyQt.QtWidgets import QAction, QWidget, QDialog, QTableWidgetItem, QAbstractItemView, QCheckBox
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -213,24 +213,29 @@ class QGIS2APICNIG:
             Load layers in table
         """
 
-        class NewDialog(QDialog):
-            def __init__(self, parent=None):
-                super().__init__(parent=parent)
-
-        def open_new_dialog():
-            a = NewDialog()
-            
-            a.exec_()
-            a.show()
-
-        boton = self.dlg.pushButton_SelectLayers
-        boton.clicked.connect(open_new_dialog)
-        
 
         for layer in QgsProject.instance().mapLayers().values():
             from console import console
             console.show_console()
             print(layer, layer.type() )
+            tablaCapas = self.dlg.tableWidget_capas
+            tablaCapas.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            rowPosition = tablaCapas.rowCount()
+            tablaCapas.insertRow(rowPosition)
+            checkCapa = QCheckBox()
+            checkCapa.setChecked(True)
+            
+            tablaCapas.setCellWidget(rowPosition , 0, checkCapa)
+
+            if layer.type() == QgsMapLayer.VectorLayer:
+                tablaCapas.setItem(rowPosition , 1, QTableWidgetItem("Vector"))
+            elif layer.type() == QgsMapLayer.RasterLayer:
+                tablaCapas.setItem(rowPosition , 1, QTableWidgetItem("Ráster"))
+            else:
+                tablaCapas.setItem(rowPosition , 1, QTableWidgetItem("---"))
+
+            tablaCapas.setItem(rowPosition , 2, QTableWidgetItem(layer.providerType()))
+            tablaCapas.setItem(rowPosition , 3, QTableWidgetItem( layer.name() ))
 
         # self.dlg.comboBox_Layers.clear()
         # self.dlg.comboBox_Layers.addItem(self.tr("--- Selecciona capas a cargar en visualizador ---"))
