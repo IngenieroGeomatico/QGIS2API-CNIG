@@ -213,13 +213,17 @@ class QGIS2APICNIG:
             Load layers in table
         """
 
+        tablaCapas = self.dlg.tableWidget_capas
+        tablaCapas.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        tablaCapas.setRowCount(0)
 
         for layer in QgsProject.instance().mapLayers().values():
             from console import console
             console.show_console()
             print(layer, layer.type() )
-            tablaCapas = self.dlg.tableWidget_capas
-            tablaCapas.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            
+            
+            
             rowPosition = tablaCapas.rowCount()
             tablaCapas.insertRow(rowPosition)
             checkCapa = QCheckBox()
