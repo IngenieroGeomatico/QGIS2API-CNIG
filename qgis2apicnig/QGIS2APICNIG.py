@@ -217,10 +217,11 @@ class QGIS2APICNIG:
         tablaCapas.setEditTriggers(QAbstractItemView.NoEditTriggers)
         tablaCapas.setRowCount(0)
 
-        for layer in QgsProject.instance().mapLayers().values():
+        for layer in QgsProject.instance().layerTreeRoot().findLayers():
             from console import console
             console.show_console()
-            print(layer, layer.type() )
+            print(layer, layer.name() )
+            layer = QgsProject.instance().mapLayersByName(layer.name())[0]
             
             
             
