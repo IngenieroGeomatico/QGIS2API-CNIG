@@ -231,15 +231,20 @@ class QGIS2APICNIG:
             
             tablaCapas.setCellWidget(rowPosition , 0, checkCapa)
 
-            if layer.type() == QgsMapLayer.VectorLayer:
-                tablaCapas.setItem(rowPosition , 1, QTableWidgetItem("Vector"))
-            elif layer.type() == QgsMapLayer.RasterLayer:
-                tablaCapas.setItem(rowPosition , 1, QTableWidgetItem("Ráster"))
-            else:
-                tablaCapas.setItem(rowPosition , 1, QTableWidgetItem("---"))
+            checkCapaVisible = QCheckBox()
+            checkCapaVisible.setChecked(True)
 
-            tablaCapas.setItem(rowPosition , 2, QTableWidgetItem(layer.providerType()))
-            tablaCapas.setItem(rowPosition , 3, QTableWidgetItem( layer.name() ))
+            tablaCapas.setCellWidget(rowPosition , 1, checkCapaVisible)
+
+            if layer.type() == QgsMapLayer.VectorLayer:
+                tablaCapas.setItem(rowPosition , 2, QTableWidgetItem("Vector"))
+            elif layer.type() == QgsMapLayer.RasterLayer:
+                tablaCapas.setItem(rowPosition , 2, QTableWidgetItem("Ráster"))
+            else:
+                tablaCapas.setItem(rowPosition , 2, QTableWidgetItem("---"))
+
+            tablaCapas.setItem(rowPosition , 3, QTableWidgetItem(layer.providerType()))
+            tablaCapas.setItem(rowPosition , 4, QTableWidgetItem( layer.name() ))
 
         # self.dlg.comboBox_Layers.clear()
         # self.dlg.comboBox_Layers.addItem(self.tr("--- Selecciona capas a cargar en visualizador ---"))
