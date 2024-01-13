@@ -23,9 +23,16 @@
 """
 
 import os
+from pathlib import Path
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
+
+from qgis.core import QgsProject, QgsMapLayer, QgsWkbTypes
+
+from PyQt5 import QtGui, QtWidgets
+
+
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -42,3 +49,48 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+
+    def selectFolder(self):
+        dialog = QtWidgets.QFileDialog()
+        if self.lineEdit_Folder.text().replace(" ","") == '':
+            folder_path = dialog.getExistingDirectory(None, "Selecciona carpeta de salida")
+        else:
+            folder_path = dialog.getExistingDirectory(self.lineEdit_Folder, "Selecciona carpeta de salida")  
+
+        if folder_path == None or folder_path == "":
+            folder_path = self.lineEdit_Folder.text()
+
+        self.lineEdit_Folder.setText(folder_path)
+        return folder_path
+
+    def exportMap(self):
+        tableOfSources = self.tableWidget_capas
+        print("tableOfSources.columnCount(): ", tableOfSources.columnCount())
+        print("tableOfSources.rowCount(): ", tableOfSources.rowCount())
+        for r in range(tableOfSources.rowCount()):
+            for c in range(tableOfSources.columnCount()):
+                item = tableOfSources.item(r, c)
+                if item == None:
+                    print("tableOfSources.item(r, c): ",tableOfSources.item(r, c))
+                    cell_widget = tableOfSources.cellWidget(r, c)
+                    if cell_widget is not None:
+                        chk_box = cell_widget.findChild(QtWidgets.QCheckBox).isChecked()
+                        print(chk_box)
+                    continue
+                text = str(item.text())
+                print(text)
+
+                if c == tableOfSources.columnCount()-1:
+                    layer = QgsProject.instance().mapLayersByName(text)[0]
+                    print(layer)
+        print(' 0 0 0 0 0 0 0 0 0 0 0 0 0 ')
+        print(self.lineEdit_Folder.text())
+        print(' 0 0 0 0 0 0 0 0 0 0 0 0 0 ')
+        exportFolder = self.lineEdit_Folder.text() + "/QGIS2APICNIG"
+        exportFolderSources = self.lineEdit_Folder.text() + "/QGIS2APICNIG/Sources"
+        Path(exportFolder).mkdir(parents=True, exist_ok=True)
+        Path(exportFolderSources).mkdir(parents=True, exist_ok=True)
+        fileMap=exportFolder + '/index.html'
+        with open(fileMap, 'w') as filetowrite:
+            filetowrite.write('new content')
+        return

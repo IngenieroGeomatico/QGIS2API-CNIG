@@ -70,7 +70,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_opcionesMapa">
         <attribute name="title">
@@ -162,7 +162,7 @@
              <property name="maximumSize">
               <size>
                <width>991</width>
-               <height>111</height>
+               <height>16777215</height>
               </size>
              </property>
              <property name="title">
@@ -200,10 +200,13 @@
                       <height>21</height>
                      </size>
                     </property>
+                    <property name="text">
+                     <string/>
+                    </property>
                    </widget>
                   </item>
                   <item row="0" column="2">
-                   <widget class="QToolButton" name="toolButton">
+                   <widget class="QToolButton" name="toolButtonSelectFolder">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                       <horstretch>0</horstretch>
@@ -239,7 +242,7 @@
                    </spacer>
                   </item>
                   <item row="0" column="1">
-                   <widget class="QToolButton" name="toolButton_2">
+                   <widget class="QToolButton" name="toolButton_ExportMap">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                       <horstretch>0</horstretch>
@@ -433,5 +436,42 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>toolButtonSelectFolder</sender>
+   <signal>clicked()</signal>
+   <receiver>QGIS2APICNIGDialogBase</receiver>
+   <slot>selectFolder()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>954</x>
+     <y>636</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>552</x>
+     <y>364</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toolButton_ExportMap</sender>
+   <signal>clicked()</signal>
+   <receiver>QGIS2APICNIGDialogBase</receiver>
+   <slot>exportMap()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>970</x>
+     <y>677</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>552</x>
+     <y>364</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>selectFolder()</slot>
+  <slot>exportMap()</slot>
+ </slots>
 </ui>

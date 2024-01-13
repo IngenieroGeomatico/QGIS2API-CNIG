@@ -299,5 +299,5 @@ class QGIS2APICNIG:
             item.setTextAlignment(QtCore.Qt.AlignCenter) # change the alignment
             tablaCapas.setItem(rowPosition , 4, item)
 
-            
+    
             
