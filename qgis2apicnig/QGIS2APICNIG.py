@@ -237,7 +237,8 @@ class QGIS2APICNIG:
                 print('storageType():', '---')
             print('-----------------')
             
-            
+            # Contenido de la tabla:
+            # [(id tabla), capa superpuesta, visible, tipo de capa, fuente de la capa, nombre]
             
             # Sacar la posición de la tupla en la tabla
             rowPosition = tablaCapas.rowCount()

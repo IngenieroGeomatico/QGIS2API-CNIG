@@ -24,11 +24,14 @@
 
 import os
 from pathlib import Path
+import shutil
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
 
-from qgis.core import QgsProject, QgsMapLayer, QgsWkbTypes
+from qgis.core import QgsProject, QgsMapLayer, QgsWkbTypes, QgsCoordinateTransform, QgsCoordinateReferenceSystem
+from qgis.gui import QgsMapCanvas
+from qgis.utils import iface
 
 from PyQt5 import QtGui, QtWidgets
 
@@ -65,32 +68,265 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def exportMap(self):
         tableOfSources = self.tableWidget_capas
-        print("tableOfSources.columnCount(): ", tableOfSources.columnCount())
-        print("tableOfSources.rowCount(): ", tableOfSources.rowCount())
+        # print("tableOfSources.columnCount(): ", tableOfSources.columnCount())
+        # print("tableOfSources.rowCount(): ", tableOfSources.rowCount())
+
+        layers = []
+        controls = []
+        plugins = []
+        # Contenido de la tabla:
+        # [ 0-> capa superpuesta, 1-> visible, 2-> tipo de capa, 3-> fuente de la capa, 4-> nombre]
         for r in range(tableOfSources.rowCount()):
+            layer={
+                'layerSourceType':'',
+                'url_path':'',
+                'format':'',
+                'style':'',
+                'nameLayer':'',
+                'nameLegend':'',
+                'visible':0,
+                'isLocal':0,
+                'dataSourceUri':''
+            }
             for c in range(tableOfSources.columnCount()):
                 item = tableOfSources.item(r, c)
                 if item == None:
-                    print("tableOfSources.item(r, c): ",tableOfSources.item(r, c))
                     cell_widget = tableOfSources.cellWidget(r, c)
                     if cell_widget is not None:
                         chk_box = cell_widget.findChild(QtWidgets.QCheckBox).isChecked()
-                        print(chk_box)
-                    continue
-                text = str(item.text())
-                print(text)
+                        # c = 0 --> capa supuerpuesta
+                        if c == 0:
+                            # print('check capa superpuesta:  ',chk_box)
+                            if chk_box == False:
+                                break
+                        # c = 1 --> capa visible
+                        elif c == 1:
+                            # print('check visible:  ',chk_box)
+                            layer['visible'] = chk_box
+                            continue
+                else:
+                    text = str(item.text())
 
-                if c == tableOfSources.columnCount()-1:
-                    layer = QgsProject.instance().mapLayersByName(text)[0]
-                    print(layer)
-        print(' 0 0 0 0 0 0 0 0 0 0 0 0 0 ')
-        print(self.lineEdit_Folder.text())
-        print(' 0 0 0 0 0 0 0 0 0 0 0 0 0 ')
+                    # c = 2 --> tipo de capa
+                    if c == 2:
+                        # print('tipo de la capa: ',text)
+                        pass
+                    
+                    # c = 3 --> fuente de la capa
+                    elif c == 3:
+                        # print('fuente de la capa: ',text)
+                        layer['layerSourceType'] = text
+                    
+                    # c = 4 --> nombre
+                    elif c == 4:
+                        QGISlayer = QgsProject.instance().mapLayersByName(text)[0]
+                        # print('nombre de la capa: ',QGISlayer.name())
+                        layer['nameLegend'] = QGISlayer.name()
+                        layer['dataSourceUri'] = QGISlayer.dataProvider().dataSourceUri()
+
+            layers.append( self.JSONLayer2StringLayer(layer) )      
+
+        layers = list(filter( lambda k: '' != k, layers ))                       
+
+        
+        extentQGIS = iface.mapCanvas().extent()
+        CRSQGIS = QgsProject.instance().crs()
+        ct = QgsCoordinateTransform(CRSQGIS, QgsCoordinateReferenceSystem('EPSG:3857'), QgsProject.instance())
+        bounds_crs = ct.transformBoundingBox(extentQGIS)
+        bbox = [ bounds_crs.xMinimum() , bounds_crs.yMinimum() , bounds_crs.xMaximum() , bounds_crs.yMaximum() ]
+        
         exportFolder = self.lineEdit_Folder.text() + "/QGIS2APICNIG"
         exportFolderSources = self.lineEdit_Folder.text() + "/QGIS2APICNIG/Sources"
+        shutil.rmtree(exportFolder)
         Path(exportFolder).mkdir(parents=True, exist_ok=True)
         Path(exportFolderSources).mkdir(parents=True, exist_ok=True)
         fileMap=exportFolder + '/index.html'
+
         with open(fileMap, 'w') as filetowrite:
-            filetowrite.write('new content')
+            filetowrite.write( self.CreateHTML(bbox, layers) )
         return
+
+    def JSONLayer2StringLayer(self, layer):
+        stringLayer = ''
+        print(layer['dataSourceUri'])
+
+        if layer['layerSourceType'] == 'XYZ':
+            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
+
+            if urlURI:
+                url = urlURI.split('=')[1]
+                url = url.replace('%7B','{')
+                url = url.replace('%7D','}')
+
+            stringLayer="""
+                                mapajs.addXYZ(
+                                    new M.layer.XYZ({{
+                                        url: '{url}',
+                                        name: '{name}',
+                                        visibility: {visible},
+                                    }})
+                                );
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower()
+
+                                )
+
+        elif layer['layerSourceType'] == 'TMS':
+            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
+
+            if urlURI:
+                url = urlURI.split('=')[1]
+                url = url.replace('%7B','{')
+                url = url.replace('%7D','}')
+
+            stringLayer="""
+                                mapajs.addTMS(
+                                    new M.layer.TMS({{
+                                        url: '{url}',
+                                        name: '{name}',
+                                        visibility: {visible},
+                                    }})
+                                );
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower()
+
+                                )
+
+        elif layer['layerSourceType'] == 'WMTS':
+            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
+            formatURI = list(filter( lambda k: 'format=' in k, layer['dataSourceUri'].split('&') ))[0]
+            layerURI = list(filter( lambda k: 'layers=' in k, layer['dataSourceUri'].split('&') ))[0]
+            stylesURI = list(filter( lambda k: 'styles=' in k, layer['dataSourceUri'].split('&') ))[0]
+
+            if urlURI:
+                url = urlURI.split('=')[1]
+            if formatURI:
+                formatWMTS = formatURI.split('=')[1]
+            if layerURI:
+                layerWMTS = layerURI.split('=')[1]
+            if stylesURI:
+                styleWMTS = stylesURI.split('=')[1]
+
+            stringLayer="""
+                                mapajs.addWMTS(
+                                    new M.layer.WMTS({{
+                                        url: '{url}',
+                                        name: "{layerWMTS}",
+                                        legend: "{name}",
+                                        visibility: {visible},
+                                        }},
+                                        {{
+                                            format: '{formatWMTS}'
+                                        }})
+                                );
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    formatWMTS=formatWMTS,
+                                    layerWMTS=layerWMTS,
+                                )
+
+        elif layer['layerSourceType'] == 'WMS':
+            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
+            formatURI = list(filter( lambda k: 'format=' in k, layer['dataSourceUri'].split('&') ))[0]
+            layerURI = list(filter( lambda k: 'layers=' in k, layer['dataSourceUri'].split('&') ))[0]
+            # stylesURI = list(filter( lambda k: 'styles=' in k, layer['dataSourceUri'].split('&') ))[0]
+
+            if urlURI:
+                url = urlURI.split('=')[1]
+            if formatURI:
+                formatWMS = formatURI.split('=')[1]
+            if layerURI:
+                layerWMS = layerURI.split('=')[1]
+            # if stylesURI:
+            #     styleWMS = stylesURI.split('=')[1]
+
+            stringLayer="""
+                                mapajs.addWMS(
+                                     new M.layer.WMS({{
+                                            url: '{url}',
+                                            name: "{layerWMS}",
+                                            legend: "{name}",
+                                            tiled: false,
+                                            visibility: {visible},
+                                        }}, 
+                                        {{
+                                            format: '{formatWMS}'
+                                        }})
+                                );
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    formatWMS=formatWMS,
+                                    layerWMS=layerWMS,
+                                )
+
+        return stringLayer
+
+    def CreateHTML(self, bbox, layers):
+
+        layersString = ''
+        for l in layers:
+            layersString = layersString + l
+        html = """<html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>Visualizador API-CNIG</title>
+                            
+                            <!-- Estilo de la API -->
+                            <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign.ol.min.css">
+                            
+                            <style type="text/css">
+                                html,
+                                body {{
+                                    margin: 0;
+                                    padding: 0;
+                                    height: 100%;
+                                    overflow: hidden;
+                                }}
+                            </style>
+                            
+                            <!-- Ficheros javascript de la API -->
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/vendor/browser-polyfill.js"></script>
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/apiign.ol.min.js"></script>
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration.js"></script>
+                            
+                        </head>
+                        
+                        <body>
+                            <!-- Contenedor principal del mapa -->
+                            <div id="mapaJS_div" class="m-container"></div>
+                            
+                            <script type="text/javascript">
+                                
+                                // Configuración del mapa
+                                let zoomInicial = 5
+                                let longLatInicial = [-3, 40]
+                                const zoom_p = M.config.MAP_VIEWER_ZOOM || zoomInicial;
+                                const center_p = M.config.MAP_VIEWER_CENTER || ol.proj.fromLonLat(longLatInicial);
+                                
+                                M.proxy(false) // Necesario para ejecutar el visualizador en local.
+                                const mapajs = M.map({{
+                                    container: 'mapaJS_div',
+                                    controls: ['backgroundlayers'],
+                                    bbox: {bbox}
+                                }});
+                                
+                                const layers_p = M.config.MAP_VIEWER_LAYERS || [];
+                                mapajs.addLayers(layers_p)
+
+                                {layers}
+                                
+                            </script>
+                        </body>
+                    </html>""".format(
+                                    bbox = bbox,
+                                    layers = layersString
+                                )
+        return html
