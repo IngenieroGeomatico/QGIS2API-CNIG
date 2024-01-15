@@ -25,6 +25,7 @@
 import os
 from pathlib import Path
 import shutil
+import webbrowser
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
@@ -125,8 +126,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                         layer['dataSourceUri'] = QGISlayer.dataProvider().dataSourceUri()
 
             layers.append( self.JSONLayer2StringLayer(layer) )      
-
-        layers = list(filter( lambda k: '' != k, layers ))                       
+        
+        layers = list(filter( lambda k: '' != k, layers ))        
+        layers = list(reversed(layers))               
 
         
         extentQGIS = iface.mapCanvas().extent()
@@ -137,13 +139,17 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         
         exportFolder = self.lineEdit_Folder.text() + "/QGIS2APICNIG"
         exportFolderSources = self.lineEdit_Folder.text() + "/QGIS2APICNIG/Sources"
-        shutil.rmtree(exportFolder)
+        if Path(exportFolder).exists() == True:
+            shutil.rmtree(exportFolder)
         Path(exportFolder).mkdir(parents=True, exist_ok=True)
         Path(exportFolderSources).mkdir(parents=True, exist_ok=True)
         fileMap=exportFolder + '/index.html'
 
         with open(fileMap, 'w') as filetowrite:
             filetowrite.write( self.CreateHTML(bbox, layers) )
+
+        webbrowser.open(fileMap,new=2)
+        self.close ()
         return
 
     def JSONLayer2StringLayer(self, layer):
