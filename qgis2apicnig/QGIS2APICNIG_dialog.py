@@ -30,7 +30,7 @@ import webbrowser
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
 
-from qgis.core import QgsProject, QgsMapLayer, QgsWkbTypes, QgsCoordinateTransform, QgsCoordinateReferenceSystem
+from qgis.core import QgsProject, QgsMapLayer, QgsWkbTypes, QgsCoordinateTransform, QgsCoordinateReferenceSystem, QgsVectorFileWriter, QgsCoordinateTransformContext
 from qgis.gui import QgsMapCanvas
 from qgis.utils import iface
 
@@ -68,6 +68,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         return folder_path
 
     def exportMap(self):
+        exportFolder = self.lineEdit_Folder.text() + "/QGIS2APICNIG"
+        exportFolderSources = self.lineEdit_Folder.text() + "/QGIS2APICNIG/Sources"
+
         tableOfSources = self.tableWidget_capas
         # print("tableOfSources.columnCount(): ", tableOfSources.columnCount())
         # print("tableOfSources.rowCount(): ", tableOfSources.rowCount())
@@ -87,7 +90,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 'nameLegend':'',
                 'visible':0,
                 'isLocal':0,
-                'dataSourceUri':''
+                'dataSourceUri':'',
+                'QGISlayer':'',
+                'exportFolderSources':exportFolderSources
             }
             for c in range(tableOfSources.columnCount()):
                 item = tableOfSources.item(r, c)
@@ -121,6 +126,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     # c = 4 --> nombre
                     elif c == 4:
                         QGISlayer = QgsProject.instance().mapLayersByName(text)[0]
+                        layer['QGISlayer'] = QGISlayer
                         # print('nombre de la capa: ',QGISlayer.name())
                         layer['nameLegend'] = QGISlayer.name()
                         layer['dataSourceUri'] = QGISlayer.dataProvider().dataSourceUri()
@@ -137,8 +143,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         bounds_crs = ct.transformBoundingBox(extentQGIS)
         bbox = [ bounds_crs.xMinimum() , bounds_crs.yMinimum() , bounds_crs.xMaximum() , bounds_crs.yMaximum() ]
         
-        exportFolder = self.lineEdit_Folder.text() + "/QGIS2APICNIG"
-        exportFolderSources = self.lineEdit_Folder.text() + "/QGIS2APICNIG/Sources"
+        
         if Path(exportFolder).exists() == True:
             shutil.rmtree(exportFolder)
         Path(exportFolder).mkdir(parents=True, exist_ok=True)
@@ -154,7 +159,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def JSONLayer2StringLayer(self, layer):
         stringLayer = ''
+        print(' * * * * * * * * * * * * * * *')
         print(layer['dataSourceUri'])
+        print(' * * * * * * * * * * * * * * *')
 
         if layer['layerSourceType'] == 'XYZ':
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
@@ -241,7 +248,10 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
             formatURI = list(filter( lambda k: 'format=' in k, layer['dataSourceUri'].split('&') ))[0]
             layerURI = list(filter( lambda k: 'layers=' in k, layer['dataSourceUri'].split('&') ))[0]
-            # stylesURI = list(filter( lambda k: 'styles=' in k, layer['dataSourceUri'].split('&') ))[0]
+            if 'styles=' in layer['dataSourceUri']:
+                stylesURI = list(filter( lambda k: 'styles=' in k, layer['dataSourceUri'].split('&') ))[0]
+            else:
+                stylesURI = None
 
             if urlURI:
                 url = urlURI.split('=')[1]
@@ -249,8 +259,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 formatWMS = formatURI.split('=')[1]
             if layerURI:
                 layerWMS = layerURI.split('=')[1]
-            # if stylesURI:
-            #     styleWMS = stylesURI.split('=')[1]
+            if stylesURI:
+                styleWMS = stylesURI.split('=')[1]
 
             stringLayer="""
                                 mapajs.addWMS(
@@ -272,6 +282,138 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     formatWMS=formatWMS,
                                     layerWMS=layerWMS,
                                 )
+        
+        elif layer['layerSourceType'] == 'OGC WFS (Web Feature Service)':
+
+            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split(' ') ))[0]
+            layerURI = list(filter( lambda k: 'typename=' in k, layer['dataSourceUri'].split(' ') ))[0]
+
+            if urlURI:
+                url = urlURI.split('=')[1]
+            if layerURI:
+                layerWFS = layerURI.split('=')[1]
+
+            stringLayer="""
+                                mapajs.addWFS(
+                                     new M.layer.WFS({{
+                                            url: {url}, 
+                                            name: {layerWFS},
+                                            legend: "{name}",
+                                            extract: true,
+                                        }}, {{
+                                        // aplica un estilo a la capa
+                                            style: new M.style.Generic({{
+                                                point: {{
+                                                    fill: {{  
+                                                        color: 'orange',
+                                                    }}
+                                                }},
+                                                polygon: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        opacity: 0.5,
+                                                    }},
+                                                    stroke: {{
+                                                        color: 'red',
+                                                        width: 2
+                                                    }}
+                                                }},
+                                                line: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        width: 2
+                                                    }}
+                                                }}
+                                            }}),
+                                            visibility: {visible} // capa no visible en el mapa
+                                        }}, {{
+                                            opacity: 1 // aplica opacidad a la capa
+                                        }})
+                                );
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    layerWFS=layerWFS,
+                                )
+        
+        elif layer['layerSourceType'] == 'GeoJSON':
+
+            if 'http' in layer['dataSourceUri']:
+                urlURI = layer['dataSourceUri'].split('|')[0]
+                layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
+
+                if urlURI:
+                    url = urlURI.replace('/vsicurl/','')
+                if layerURI:
+                    layerGJSON = layerURI.split('=')[1]
+
+                stringLayer="""
+                                mapajs.addLayers(
+                                     new M.layer.GeoJSON({{
+                                            url: '{url}', 
+                                            name: '{layerGJSON}',
+                                            legend: "{name}",
+                                            extract: true,
+                                        }}, {{
+                                        // aplica un estilo a la capa
+                                            style: new M.style.Generic({{
+                                                point: {{
+                                                    fill: {{  
+                                                        color: 'orange',
+                                                    }}
+                                                }},
+                                                polygon: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        opacity: 0.5,
+                                                    }},
+                                                    stroke: {{
+                                                        color: 'red',
+                                                        width: 2
+                                                    }}
+                                                }},
+                                                line: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        width: 2
+                                                    }}
+                                                }}
+                                            }}),
+                                            visibility: {visible} // capa no visible en el mapa
+                                        }}, {{
+                                            opacity: 1 // aplica opacidad a la capa
+                                        }})
+                                );
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    layerGJSON=layerGJSON,
+                                )
+            
+            else:
+                # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
+                options = QgsVectorFileWriter.SaveVectorOptions()
+                options.driverName = 'GeoJSON'
+                options.fileEncoding = 'utf-8'
+                options.layerOptions = ['COORDINATE_PRECISION=8']
+                options.onlySelectedFeatures = True
+                print(layer['QGISlayer'].crs())
+                QgsVectorFileWriter.writeAsVectorFormatV3( layer  = layer['QGISlayer'], 
+                                                           fileName = layer['exportFolderSources']+'/'+layer['nameLegend']+'.js', 
+                                                           transformContext = QgsCoordinateTransformContext.addSourceDestinationDatumTransform( layer['QGISlayer'].crs(), QgsCoordinateReferenceSystem("EPSG:4326")),
+                                                           options = options
+                )
+                pass
+        elif layer['layerSourceType'] == 'Memory storage':
+            pass
+
+        elif layer['layerSourceType'] == 'OGC API - Features':
+            pass
+
+        elif layer['layerSourceType'] == 'LIBKML':
+            pass
 
         return stringLayer
 
