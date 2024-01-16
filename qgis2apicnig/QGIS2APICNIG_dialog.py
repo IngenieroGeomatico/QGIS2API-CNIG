@@ -490,7 +490,6 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     layerGJSON=layerGJSON,
                                 )
                 
-        
         elif layer['layerSourceType'] == 'Memory storage':
             # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
                 pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","")+'.js'
@@ -580,6 +579,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             pass
 
         elif layer['layerSourceType'] == 'LIBKML':
+            pass
+
+        elif layer['layerSourceType'] == 'MVT':
             pass
 
         return stringLayer

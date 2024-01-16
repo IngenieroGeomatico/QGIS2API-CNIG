@@ -229,6 +229,7 @@ class QGIS2APICNIG:
             layer = QgsProject.instance().mapLayersByName(layer.name())[0]
 
             print('-----------------')
+            print('layer.type(): ',layer.type())
             print('layer.name():', layer.name() )
             print('dataSourceUri():', layer.dataProvider().dataSourceUri())
             try:
@@ -270,6 +271,8 @@ class QGIS2APICNIG:
                 item = QTableWidgetItem("Vector")# create the item
             elif layer.type() == QgsMapLayer.RasterLayer:
                 item = QTableWidgetItem("Ráster")# create the item
+            elif layer.type() == QgsMapLayer.VectorTileLayer:
+                item = QTableWidgetItem("Vector")# create the item
             else:
                 item = QTableWidgetItem("---") # create the item
             item.setTextAlignment(QtCore.Qt.AlignCenter) # change the alignment
@@ -279,6 +282,11 @@ class QGIS2APICNIG:
             uri = layer.dataProvider().dataSourceUri()
             if layer.type() == QgsMapLayer.VectorLayer:
                 storageType = layer.dataProvider().storageType()
+
+            elif layer.type() == QgsMapLayer.VectorTileLayer:
+                if "%7By%7D" in uri:
+                    storageType = "MVT"
+                    
             elif layer.type() == QgsMapLayer.RasterLayer:
                 if "%7By%7D" in uri:
                     storageType = "XYZ"
