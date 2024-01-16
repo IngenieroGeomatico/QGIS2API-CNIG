@@ -576,13 +576,116 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 )
 
         elif layer['layerSourceType'] == 'OGC API - Features':
-            pass
+            
+            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split(' ') ))[0]
+            layerURI = list(filter( lambda k: 'typename=' in k, layer['dataSourceUri'].split(' ') ))[0]
+
+            if urlURI:
+                url = urlURI.split('=')[1][:-1]+"collections/'"
+            if layerURI:
+                layerOGCAPI_Features = layerURI.split('=')[1]
+
+            stringLayer="""
+                                mapajs.addOGCAPIFeatures(
+                                     new M.layer.OGCAPIFeatures({{
+                                            url: {url}, 
+                                            name: {layerOGCAPI_Features},
+                                            legend: "{name}",
+                                            extract: true,
+                                            limit: 100
+                                        }}, {{
+                                        // aplica un estilo a la capa
+                                            style: new M.style.Generic({{
+                                                point: {{
+                                                    fill: {{  
+                                                        color: 'orange',
+                                                    }}
+                                                }},
+                                                polygon: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        opacity: 0.5,
+                                                    }},
+                                                    stroke: {{
+                                                        color: 'red',
+                                                        width: 2
+                                                    }}
+                                                }},
+                                                line: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        width: 2
+                                                    }}
+                                                }}
+                                            }}),
+                                            visibility: {visible} // capa no visible en el mapa
+                                        }}, {{
+                                            opacity: 1 // aplica opacidad a la capa
+                                        }})
+                                );
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    layerOGCAPI_Features=layerOGCAPI_Features,
+            )
 
         elif layer['layerSourceType'] == 'LIBKML':
-            pass
+
+            if 'http' in layer['dataSourceUri']:
+                pass
+            else:
+                pass
 
         elif layer['layerSourceType'] == 'MVT':
-            pass
+
+            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
+
+            if urlURI:
+                url = urlURI.split('=')[1]
+                url = url.replace('%7B','{')
+                url = url.replace('%7D','}')
+
+            stringLayer="""
+                                mapajs.addLayers(
+                                    new M.layer.MVT({{
+                                        url: '{url}',
+                                        name: '{name}',
+                                        extract: true
+                                    }},{{
+                                        visibility: {visible},
+                                        // aplica un estilo a la capa
+                                        style: new M.style.Generic({{
+                                                point: {{
+                                                    fill: {{  
+                                                        color: 'orange',
+                                                    }}
+                                                }},
+                                                polygon: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        opacity: 0.5,
+                                                    }},
+                                                    stroke: {{
+                                                        color: 'red',
+                                                        width: 2
+                                                    }}
+                                                }},
+                                                line: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        width: 2
+                                                    }}
+                                                }}
+                                        }}),
+                                    }})
+                                );
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower()
+
+                                )
 
         return stringLayer
 
