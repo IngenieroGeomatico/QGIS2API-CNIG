@@ -60,7 +60,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def selectFolder(self):
         dialog = QtWidgets.QFileDialog()
-        if self.lineEdit_Folder.text().replace(" ","") == '':
+        if self.lineEdit_Folder.text().replace(" ","").replace("—","_") == '':
             folder_path = dialog.getExistingDirectory(None, "Selecciona carpeta de salida")
         else:
             folder_path = dialog.getExistingDirectory(self.lineEdit_Folder, "Selecciona carpeta de salida")  
@@ -403,7 +403,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             
             else:
                 # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
-                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","")+'.js'
+                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'   
                 options = []
                 options.append("COORDINATE_PRECISION=" + str(6))
                 e, err = QgsVectorFileWriter.writeAsVectorFormat(layer['QGISlayer'], 
@@ -415,7 +415,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                                                  layerOptions=options)
                 if e == QgsVectorFileWriter.NoError:
                     with open(pathh, mode="w", encoding="utf8") as f:
-                        f.write("var %s = " % (layer['nameLegend'].replace(" ","")))
+                        f.write("var %s = " % (layer['nameLegend'].replace(" ","").replace("—","_")))
                         with open(pathh+ '_tmp', encoding="utf8") as tmpFile:
                             for line in tmpFile:
                                 line = line.strip("\n\t ")
@@ -425,7 +425,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     os.remove(pathh + '_tmp')
                 else:
                     QgsMessageLog.logMessage(
-                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","")+'.js', err),
+                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
                         "qgis2APICNIG",
                         level=Qgis.Critical)
                     return
@@ -483,16 +483,16 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 }});
                                 """.format(
                                     sourceFolder = layer['sourceFolder'],
-                                    file = layer['nameLegend'].replace(" ","")+'.js',
-                                    source = layer['nameLegend'],
-                                    name = layer['nameLegend'],
+                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
+                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layerGJSON,
                                 )
                 
         elif layer['layerSourceType'] == 'Memory storage':
             # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
-                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","")+'.js'
+                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'
                 options = []
                 options.append("COORDINATE_PRECISION=" + str(6))
                 e, err = QgsVectorFileWriter.writeAsVectorFormat(layer['QGISlayer'], 
@@ -504,7 +504,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                                                  layerOptions=options)
                 if e == QgsVectorFileWriter.NoError:
                     with open(pathh, mode="w", encoding="utf8") as f:
-                        f.write("var %s = " % (layer['nameLegend'].replace(" ","")))
+                        f.write("var %s = " % (layer['nameLegend'].replace(" ","").replace("—","_")))
                         with open(pathh+ '_tmp', encoding="utf8") as tmpFile:
                             for line in tmpFile:
                                 line = line.strip("\n\t ")
@@ -514,7 +514,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     os.remove(pathh + '_tmp')
                 else:
                     QgsMessageLog.logMessage(
-                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","")+'.js', err),
+                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
                         "qgis2APICNIG",
                         level=Qgis.Critical)
                     return
@@ -568,7 +568,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 }});
                                 """.format(
                                     sourceFolder = layer['sourceFolder'],
-                                    file = layer['nameLegend'].replace(" ","")+'.js',
+                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
                                     source = layer['nameLegend'],
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
@@ -633,10 +633,126 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         elif layer['layerSourceType'] == 'LIBKML':
 
             if 'http' in layer['dataSourceUri']:
-                pass
-            else:
-                pass
 
+                if 'http' in layer['dataSourceUri']:
+                    urlURI = layer['dataSourceUri'].split('|')[0]
+                    layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
+
+                    if urlURI:
+                        url = urlURI.replace('/vsicurl/','')
+                    if layerURI:
+                        layerGJSON = layerURI.split('=')[1]
+
+                    stringLayer="""
+                                    mapajs.addKML(
+                                        new M.layer.KML({{
+                                                url: '{url}', 
+                                                name: "{name}",
+                                                legend: "{name}",
+                                                // layers: "{layerGJSON}",
+                                                extract: true,
+                                            }}, {{
+                                                visibility: {visible} // capa no visible en el mapa
+                                            }}, {{
+                                                opacity: 1 // aplica opacidad a la capa
+                                            }})
+                                    );
+                                    """.format(
+                                        url = url,
+                                        name = layer['nameLegend'],
+                                        visible = str(layer['visible']).lower(),
+                                        layerGJSON=layerGJSON,
+                                    )
+            
+            else:
+                # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
+                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'
+                options = []
+                options.append("COORDINATE_PRECISION=" + str(6))
+                e, err = QgsVectorFileWriter.writeAsVectorFormat(layer['QGISlayer'], 
+                                                                 pathh + '_tmp',
+                                                                 "utf-8", 
+                                                                 QgsCoordinateReferenceSystem("EPSG:4326"), 
+                                                                 'GeoJson',
+                                                                 0, 
+                                                                 layerOptions=options)
+                if e == QgsVectorFileWriter.NoError:
+                    with open(pathh, mode="w", encoding="utf8") as f:
+                        f.write("var %s = " % ( layer['nameLegend'].replace(" ","").replace("—","_") ))
+                        with open(pathh+ '_tmp', encoding="utf8") as tmpFile:
+                            for line in tmpFile:
+                                line = line.strip("\n\t ")
+                                line = removeSpaces(line)
+                                f.write(line)
+
+                    os.remove(pathh + '_tmp')
+                else:
+                    QgsMessageLog.logMessage(
+                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
+                        "qgis2APICNIG",
+                        level=Qgis.Critical)
+                    return
+                
+                layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
+
+                if layerURI:
+                    layerGJSON = layerURI.split('=')[1]
+
+                stringLayer="""
+                                var js_{name} = document.createElement("script");
+                                js_{name}.type = "text/javascript";
+                                js_{name}.async = false;
+                                js_{name}.src = ".{sourceFolder}/{file}";
+                                document.head.appendChild(js_{name});
+                                js_{name}.addEventListener('load', () => {{
+                                
+                                    mapajs.addLayers(
+                                        new M.layer.GeoJSON({{
+                                                source: {source}, 
+                                                name: '{layerGJSON}',
+                                                legend: "{name}",
+                                                extract: true,
+                                            }}, {{
+                                            // aplica un estilo a la capa
+                                                style: new M.style.Generic({{
+                                                    point: {{
+                                                        fill: {{  
+                                                            color: 'orange',
+                                                        }}
+                                                    }},
+                                                    polygon: {{
+                                                        fill: {{
+                                                            color: 'orange',
+                                                            opacity: 0.5,
+                                                        }},
+                                                        stroke: {{
+                                                            color: 'red',
+                                                            width: 2
+                                                        }}
+                                                    }},
+                                                    line: {{
+                                                        fill: {{
+                                                            color: 'orange',
+                                                            width: 2
+                                                        }}
+                                                    }}
+                                                }}),
+                                                visibility: {visible} // capa no visible en el mapa
+                                            }}, {{
+                                                opacity: 1 // aplica opacidad a la capa
+                                            }})
+                                    );
+
+                                }});
+                                """.format(
+                                    sourceFolder = layer['sourceFolder'],
+                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
+                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    visible = str(layer['visible']).lower(),
+                                    layerGJSON=layerGJSON,
+                                )
+                
         elif layer['layerSourceType'] == 'MVT':
 
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
