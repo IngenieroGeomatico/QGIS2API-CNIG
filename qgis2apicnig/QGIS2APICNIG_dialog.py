@@ -172,6 +172,12 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         
         stringLayer = ''
 
+        #TODO:   
+        # capaKML = QgsProject.instance().mapLayersByName('asdf — redesgeodesicasred_ergnss')[0]
+        # capaKML.renderer().dump()
+        # capaKML.renderer().legendClassificationAttribute()
+        # capaKML.renderer().legendClassificationAttribute()
+
         if layer['layerSourceType'] == 'XYZ':
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
 
