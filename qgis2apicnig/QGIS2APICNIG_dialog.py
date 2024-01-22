@@ -48,6 +48,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
+    
     def __init__(self, parent=None):
         """Constructor."""
         super(QGIS2APICNIGDialog, self).__init__(parent)
@@ -171,12 +172,6 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                             for i, it in enumerate(txt.split('"')))
         
         stringLayer = ''
-
-        #TODO:   
-        # capaKML = QgsProject.instance().mapLayersByName('asdf — redesgeodesicasred_ergnss')[0]
-        # capaKML.renderer().dump()
-        # capaKML.renderer().legendClassificationAttribute()
-        # capaKML.renderer().legendClassificationAttribute()
 
         if layer['layerSourceType'] == 'XYZ':
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
@@ -308,6 +303,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             if layerURI:
                 layerWFS = layerURI.split('=')[1]
 
+            APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+
             stringLayer="""
                                 mapajs.addWFS(
                                      new M.layer.WFS({{
@@ -317,29 +314,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             extract: true,
                                         }}, {{
                                         // aplica un estilo a la capa
-                                            style: new M.style.Generic({{
-                                                point: {{
-                                                    fill: {{  
-                                                        color: 'orange',
-                                                    }}
-                                                }},
-                                                polygon: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        opacity: 0.5,
-                                                    }},
-                                                    stroke: {{
-                                                        color: 'red',
-                                                        width: 2
-                                                    }}
-                                                }},
-                                                line: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        width: 2
-                                                    }}
-                                                }}
-                                            }}),
+                                            style: {APICNIGStyle},
                                             visibility: {visible} // capa no visible en el mapa
                                         }}, {{
                                             opacity: 1 // aplica opacidad a la capa
@@ -350,6 +325,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     layerWFS=layerWFS,
+                                    APICNIGStyle=APICNIGStyle,
                                 )
         
         elif layer['layerSourceType'] == 'GeoJSON':
@@ -362,6 +338,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     url = urlURI.replace('/vsicurl/','')
                 if layerURI:
                     layerGJSON = layerURI.split('=')[1]
+                
+                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
                 stringLayer="""
                                 mapajs.addLayers(
@@ -372,29 +350,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             extract: true,
                                         }}, {{
                                         // aplica un estilo a la capa
-                                            style: new M.style.Generic({{
-                                                point: {{
-                                                    fill: {{  
-                                                        color: 'orange',
-                                                    }}
-                                                }},
-                                                polygon: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        opacity: 0.5,
-                                                    }},
-                                                    stroke: {{
-                                                        color: 'red',
-                                                        width: 2
-                                                    }}
-                                                }},
-                                                line: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        width: 2
-                                                    }}
-                                                }}
-                                            }}),
+                                            style: {APICNIGStyle},
                                             visibility: {visible} // capa no visible en el mapa
                                         }}, {{
                                             opacity: 1 // aplica opacidad a la capa
@@ -405,6 +361,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layerGJSON,
+                                    APICNIGStyle=APICNIGStyle,
                                 )
             
             else:
@@ -441,6 +398,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 if layerURI:
                     layerGJSON = layerURI.split('=')[1]
 
+                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+
                 stringLayer="""
                                 var js_{name} = document.createElement("script");
                                 js_{name}.type = "text/javascript";
@@ -457,29 +416,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                                 extract: true,
                                             }}, {{
                                             // aplica un estilo a la capa
-                                                style: new M.style.Generic({{
-                                                    point: {{
-                                                        fill: {{  
-                                                            color: 'orange',
-                                                        }}
-                                                    }},
-                                                    polygon: {{
-                                                        fill: {{
-                                                            color: 'orange',
-                                                            opacity: 0.5,
-                                                        }},
-                                                        stroke: {{
-                                                            color: 'red',
-                                                            width: 2
-                                                        }}
-                                                    }},
-                                                    line: {{
-                                                        fill: {{
-                                                            color: 'orange',
-                                                            width: 2
-                                                        }}
-                                                    }}
-                                                }}),
+                                                style: {APICNIGStyle},
                                                 visibility: {visible} // capa no visible en el mapa
                                             }}, {{
                                                 opacity: 1 // aplica opacidad a la capa
@@ -494,6 +431,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     name = layer['nameLegend'].replace(" ","").replace("—","_"),
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layerGJSON,
+                                    APICNIGStyle=APICNIGStyle,
                                 )
                 
         elif layer['layerSourceType'] == 'Memory storage':
@@ -525,6 +463,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                         level=Qgis.Critical)
                     return
                 
+                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
                 stringLayer="""
                                 var js_{name} = document.createElement("script");
@@ -542,29 +481,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                                 extract: true,
                                             }}, {{
                                             // aplica un estilo a la capa
-                                                style: new M.style.Generic({{
-                                                    point: {{
-                                                        fill: {{  
-                                                            color: 'orange',
-                                                        }}
-                                                    }},
-                                                    polygon: {{
-                                                        fill: {{
-                                                            color: 'orange',
-                                                            opacity: 0.5,
-                                                        }},
-                                                        stroke: {{
-                                                            color: 'red',
-                                                            width: 2
-                                                        }}
-                                                    }},
-                                                    line: {{
-                                                        fill: {{
-                                                            color: 'orange',
-                                                            width: 2
-                                                        }}
-                                                    }}
-                                                }}),
+                                                style: {APICNIGStyle},
                                                 visibility: {visible} // capa no visible en el mapa
                                             }}, {{
                                                 opacity: 1 // aplica opacidad a la capa
@@ -575,10 +492,11 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 """.format(
                                     sourceFolder = layer['sourceFolder'],
                                     file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
-                                    source = layer['nameLegend'],
-                                    name = layer['nameLegend'],
+                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layer['nameLegend'],
+                                    APICNIGStyle=APICNIGStyle,
                                 )
 
         elif layer['layerSourceType'] == 'OGC API - Features':
@@ -591,6 +509,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             if layerURI:
                 layerOGCAPI_Features = layerURI.split('=')[1]
 
+            APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+
             stringLayer="""
                                 mapajs.addOGCAPIFeatures(
                                      new M.layer.OGCAPIFeatures({{
@@ -601,29 +521,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             limit: 100
                                         }}, {{
                                         // aplica un estilo a la capa
-                                            style: new M.style.Generic({{
-                                                point: {{
-                                                    fill: {{  
-                                                        color: 'orange',
-                                                    }}
-                                                }},
-                                                polygon: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        opacity: 0.5,
-                                                    }},
-                                                    stroke: {{
-                                                        color: 'red',
-                                                        width: 2
-                                                    }}
-                                                }},
-                                                line: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        width: 2
-                                                    }}
-                                                }}
-                                            }}),
+                                            style: {APICNIGStyle},
                                             visibility: {visible} // capa no visible en el mapa
                                         }}, {{
                                             opacity: 1 // aplica opacidad a la capa
@@ -634,6 +532,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     layerOGCAPI_Features=layerOGCAPI_Features,
+                                    APICNIGStyle=APICNIGStyle,
             )
 
         elif layer['layerSourceType'] == 'LIBKML':
@@ -704,6 +603,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 if layerURI:
                     layerGJSON = layerURI.split('=')[1]
 
+                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+
                 stringLayer="""
                                 var js_{name} = document.createElement("script");
                                 js_{name}.type = "text/javascript";
@@ -720,29 +621,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                                 extract: true,
                                             }}, {{
                                             // aplica un estilo a la capa
-                                                style: new M.style.Generic({{
-                                                    point: {{
-                                                        fill: {{  
-                                                            color: 'orange',
-                                                        }}
-                                                    }},
-                                                    polygon: {{
-                                                        fill: {{
-                                                            color: 'orange',
-                                                            opacity: 0.5,
-                                                        }},
-                                                        stroke: {{
-                                                            color: 'red',
-                                                            width: 2
-                                                        }}
-                                                    }},
-                                                    line: {{
-                                                        fill: {{
-                                                            color: 'orange',
-                                                            width: 2
-                                                        }}
-                                                    }}
-                                                }}),
+                                                style: {APICNIGStyle},
                                                 visibility: {visible} // capa no visible en el mapa
                                             }}, {{
                                                 opacity: 1 // aplica opacidad a la capa
@@ -757,6 +636,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     name = layer['nameLegend'].replace(" ","").replace("—","_"),
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layerGJSON,
+                                    APICNIGStyle=APICNIGStyle,
                                 )
                 
         elif layer['layerSourceType'] == 'MVT':
@@ -768,6 +648,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 url = url.replace('%7B','{')
                 url = url.replace('%7D','}')
 
+            APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+
             stringLayer="""
                                 mapajs.addLayers(
                                     new M.layer.MVT({{
@@ -777,35 +659,14 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     }},{{
                                         visibility: {visible},
                                         // aplica un estilo a la capa
-                                        style: new M.style.Generic({{
-                                                point: {{
-                                                    fill: {{  
-                                                        color: 'orange',
-                                                    }}
-                                                }},
-                                                polygon: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        opacity: 0.5,
-                                                    }},
-                                                    stroke: {{
-                                                        color: 'red',
-                                                        width: 2
-                                                    }}
-                                                }},
-                                                line: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        width: 2
-                                                    }}
-                                                }}
-                                        }}),
+                                        style: style: {APICNIGStyle},
                                     }})
                                 );
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower()
+                                    visible = str(layer['visible']).lower(),
+                                    APICNIGStyle=APICNIGStyle,
 
                                 )
 
@@ -872,3 +733,110 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     layers = layersString
                                 )
         return html
+
+    def QGISStyle2APICNIGStyle(self, qgisLayerLegend):
+
+        qgisLayer= QgsProject.instance().mapLayersByName(qgisLayerLegend)[0]
+
+        typeStyle = qgisLayer.renderer().type()
+        legendClassificationAttribute = qgisLayer.renderer().legendClassificationAttribute()
+
+        # Una capa puede tener más de une stilo, por lo que cuando en apicnig se permita un array de estilos, 
+        # se podrá añadir cada estilo de qgis como un array desde un bucle.
+        # De momento se coge el elemento 0
+        propertiesStyle = qgisLayer.renderer().symbol().symbolLayer(0).properties()
+
+        print('_____________________________')
+        print('typeStyle  :',typeStyle)
+        print('legendClassificationAttribute  :',legendClassificationAttribute)
+        print('propertiesStyle :',propertiesStyle)
+        print('_____________________________')
+
+
+        if typeStyle == 'singleSymbol':
+
+            fillColorRGBA_list= propertiesStyle['color'].split(',')
+            fillColorRGB = '''rgb({r}, {g}, {b})'''.format(
+                r = int(fillColorRGBA_list[0]),
+                g = int(fillColorRGBA_list[1]),
+                b = int(fillColorRGBA_list[2]),
+            )
+            fillOpacity = int(fillColorRGBA_list[3]) / 255 
+
+            strokeColorRGBA_list= propertiesStyle['outline_color'].split(',')
+            strokeColorRGB = '''rgb({r}, {g}, {b})'''.format(
+                r = int(strokeColorRGBA_list[0]),
+                g = int(strokeColorRGBA_list[1]),
+                b = int(strokeColorRGBA_list[2]),
+            )
+            strokeOpacity = int(strokeColorRGBA_list[3]) / 255 
+            strokeWidth = float(propertiesStyle['outline_width'])
+
+            APICNIGStyle = '''new M.style.Generic({{
+                                point: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }},
+                                polygon: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }},
+                                line: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }}
+                            }})'''.format(
+                                    fillColorRGB = fillColorRGB,
+                                    fillOpacity=fillOpacity,
+                                    strokeColorRGB=strokeColorRGB,
+                                    strokeOpacity=strokeOpacity,
+                                    strokeWidth =strokeWidth,
+                            )
+
+        else:
+            APICNIGStyle = '''new M.style.Generic({{
+                                                point: {{
+                                                    fill: {{  
+                                                        color: 'orange',
+                                                    }}
+                                                }},
+                                                polygon: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        opacity: 0.5,
+                                                    }},
+                                                    stroke: {{
+                                                        color: 'red',
+                                                        width: 2
+                                                    }}
+                                                }},
+                                                line: {{
+                                                    fill: {{
+                                                        color: 'orange',
+                                                        width: 2
+                                                    }}
+                                                }}
+                                            }})'''
+        
+        return APICNIGStyle

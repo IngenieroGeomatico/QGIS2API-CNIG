@@ -165,6 +165,7 @@ class QGIS2APICNIG:
 
         return action
 
+
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
