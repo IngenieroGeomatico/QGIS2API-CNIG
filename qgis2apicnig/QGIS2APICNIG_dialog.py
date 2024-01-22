@@ -672,68 +672,6 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
         return stringLayer
 
-    def CreateHTML(self, bbox, layers):
-
-        layersString = ''
-        for l in layers:
-            layersString = layersString + l
-        html = """<html>
-                        <head>
-                            <meta charset="UTF-8">
-                            <title>Visualizador API-CNIG</title>
-                            
-                            <!-- Estilo de la API -->
-                            <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign.ol.min.css">
-                            
-                            <style type="text/css">
-                                html,
-                                body {{
-                                    margin: 0;
-                                    padding: 0;
-                                    height: 100%;
-                                    overflow: hidden;
-                                }}
-                            </style>
-                            
-                            <!-- Ficheros javascript de la API -->
-                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/vendor/browser-polyfill.js"></script>
-                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/apiign.ol.min.js"></script>
-                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration.js"></script>
-                            
-                        </head>
-                        
-                        <body>
-                            <!-- Contenedor principal del mapa -->
-                            <div id="mapaJS_div" class="m-container"></div>
-                            
-                            <script type="text/javascript">
-                                
-                                // Configuración del mapa
-                                let zoomInicial = 5
-                                let longLatInicial = [-3, 40]
-                                const zoom_p = M.config.MAP_VIEWER_ZOOM || zoomInicial;
-                                const center_p = M.config.MAP_VIEWER_CENTER || ol.proj.fromLonLat(longLatInicial);
-                                
-                                M.proxy(false) // Necesario para ejecutar el visualizador en local.
-                                const mapajs = M.map({{
-                                    container: 'mapaJS_div',
-                                    controls: ['backgroundlayers'],
-                                    bbox: {bbox}
-                                }});
-                                
-                                const layers_p = M.config.MAP_VIEWER_LAYERS || [];
-                                mapajs.addLayers(layers_p)
-
-                                {layers}
-                                
-                            </script>
-                        </body>
-                    </html>""".format(
-                                    bbox = bbox,
-                                    layers = layersString
-                                )
-        return html
-
     def QGISStyle2APICNIGStyle(self, qgisLayerLegend):
 
         qgisLayer= QgsProject.instance().mapLayersByName(qgisLayerLegend)[0]
@@ -841,7 +779,65 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         
         return APICNIGStyle
 
+    def CreateHTML(self, bbox, layers):
 
+        layersString = ''
+        for l in layers:
+            layersString = layersString + l
+        html = """<html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>Visualizador API-CNIG</title>
+                            
+                            <!-- Estilo de la API -->
+                            <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign.ol.min.css">
+                            
+                            <style type="text/css">
+                                html,
+                                body {{
+                                    margin: 0;
+                                    padding: 0;
+                                    height: 100%;
+                                    overflow: hidden;
+                                }}
+                            </style>
+                            
+                            <!-- Ficheros javascript de la API -->
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/vendor/browser-polyfill.js"></script>
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/apiign.ol.min.js"></script>
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration.js"></script>
+                            
+                        </head>
+                        
+                        <body>
+                            <!-- Contenedor principal del mapa -->
+                            <div id="mapaJS_div" class="m-container"></div>
+                            
+                            <script type="text/javascript">
+                                
+                                // Configuración del mapa
+                                let zoomInicial = 5
+                                let longLatInicial = [-3, 40]
+                                const zoom_p = M.config.MAP_VIEWER_ZOOM || zoomInicial;
+                                const center_p = M.config.MAP_VIEWER_CENTER || ol.proj.fromLonLat(longLatInicial);
+                                
+                                M.proxy(false) // Necesario para ejecutar el visualizador en local.
+                                const mapajs = M.map({{
+                                    container: 'mapaJS_div',
+                                    controls: ['backgroundlayers'],
+                                    bbox: {bbox}
+                                }});
+                                
+                                const layers_p = M.config.MAP_VIEWER_LAYERS || [];
+                                mapajs.addLayers(layers_p)
 
-
+                                {layers}
+                                
+                            </script>
+                        </body>
+                    </html>""".format(
+                                    bbox = bbox,
+                                    layers = layersString
+                                )
+        return html
 
