@@ -840,3 +840,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             }})'''
         
         return APICNIGStyle
+
+
+
+
+
