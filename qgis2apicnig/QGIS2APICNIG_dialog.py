@@ -107,6 +107,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 'visible':0,
                 'isLocal':0,
                 'dataSourceUri':'',
+                'source':'',
                 'QGISlayer':'',
                 'sourceFolder':sourceFolder,
                 'exportFolderSources':exportFolderSources,
@@ -150,7 +151,12 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                         # print('nombre de la capa: ',QGISlayer.name())
                         layer['nameLegend'] = QGISlayer.name()
                         layer['dataSourceUri'] = QGISlayer.dataProvider().dataSourceUri()
+                        layer['source'] = QGISlayer.source()
 
+                        if layer['dataSourceUri'] == '':
+                            layer['dataSourceUri'] = layer['source'] 
+
+            
             layers.append( self.JSONLayer2StringLayer(layer) )      
         
         layers = list(filter( lambda k: '' != k, layers ))        
@@ -741,7 +747,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 )
                 
         elif layer['layerSourceType'] == 'MVT':
-
+            print(layer['dataSourceUri'])
+            print(layer['dataSourceUri'].split('&') )
+            print(list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0])
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
 
             if urlURI:

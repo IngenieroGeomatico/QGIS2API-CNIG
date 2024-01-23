@@ -290,15 +290,15 @@ class QGIS2APICNIG:
                 storageType = layer.dataProvider().storageType()
 
             elif layer.type() == QgsMapLayer.VectorTileLayer:
-                if "%7By%7D" in uri:
+                if "%7By%7D" in uri or "{y}" in uri:
                     storageType = "MVT"
                 else:
                     storageType = "---"
                     
             elif layer.type() == QgsMapLayer.RasterLayer:
-                if "%7By%7D" in uri:
+                if "%7By%7D" in uri or "{y}" in uri:
                     storageType = "XYZ"
-                elif "%7B-y%7D" in uri:
+                elif "%7B-y%7D" in uri or "{-y}" in uri:
                     storageType = "TMS"
                 elif "tileMatrixSet" in uri:
                     storageType = "WMTS"
