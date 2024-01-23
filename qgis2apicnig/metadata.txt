@@ -5,7 +5,7 @@
 [general]
 name=QGIS2API-CNIG
 qgisMinimumVersion=3.0
-description=Complemento que crea un visualizador cartográfico con el contenido del lieno de QGIS
+description=Complemento que crea un visualizador cartográfico con el contenido del lienzo de QGIS
 version=0.1
 author=IngenieroGeomatico
 email=aurearagon@gmail.com
