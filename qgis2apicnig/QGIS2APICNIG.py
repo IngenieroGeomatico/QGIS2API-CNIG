@@ -232,6 +232,7 @@ class QGIS2APICNIG:
             print('-----------------')
             print('layer.type(): ',layer.type())
             print('layer.name():', layer.name() )
+            print('layer.source() :',layer.source())
             print('dataSourceUri():', layer.dataProvider().dataSourceUri())
             try:
                 print('storageType():', layer.dataProvider().storageType())
@@ -281,6 +282,10 @@ class QGIS2APICNIG:
 
             # Condicional para saber el tipo de fuente de la capa
             uri = layer.dataProvider().dataSourceUri()
+            if uri == '':
+                uri = layer.source()
+
+
             if layer.type() == QgsMapLayer.VectorLayer:
                 storageType = layer.dataProvider().storageType()
 
