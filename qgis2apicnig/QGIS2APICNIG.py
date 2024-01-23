@@ -287,6 +287,8 @@ class QGIS2APICNIG:
             elif layer.type() == QgsMapLayer.VectorTileLayer:
                 if "%7By%7D" in uri:
                     storageType = "MVT"
+                else:
+                    storageType = "---"
                     
             elif layer.type() == QgsMapLayer.RasterLayer:
                 if "%7By%7D" in uri:
