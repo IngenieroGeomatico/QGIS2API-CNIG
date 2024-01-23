@@ -23,7 +23,7 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python
+tags=python, API-CNIG, visualizador, OpenLayers
 
 homepage=https://github.com/IngenieroGeomatico/QGIS2API-CNIG
 category=Web
