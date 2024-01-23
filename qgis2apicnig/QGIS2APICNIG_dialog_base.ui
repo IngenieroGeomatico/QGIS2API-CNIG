@@ -147,58 +147,58 @@
             <item row="0" column="0">
              <layout class="QFormLayout" name="formLayout">
               <item row="0" column="0">
-               <layout class="QVBoxLayout" name="verticalLayout">
+               <layout class="QVBoxLayout" name="verticalLayout_controlesPlugins">
                 <item>
-                 <widget class="QCheckBox" name="checkBox_2">
+                 <widget class="QCheckBox" name="checkBox_SelectorCapas">
                   <property name="text">
                    <string>Selector de capas</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBox_3">
+                 <widget class="QCheckBox" name="checkBox_CapasBase">
                   <property name="text">
                    <string>Selector de capa base</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBox_4">
+                 <widget class="QCheckBox" name="checkBox_Rotacion">
                   <property name="text">
                    <string>Control de rotación</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBox_5">
+                 <widget class="QCheckBox" name="checkBox_Localizacion">
                   <property name="text">
                    <string>Control de localización</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBox_6">
+                 <widget class="QCheckBox" name="checkBox_EscalaZoom">
                   <property name="text">
                    <string>Ver escala y zoom</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBox_7">
+                 <widget class="QCheckBox" name="checkBox_ZoomBotones">
                   <property name="text">
                    <string>Control de zoom por botones</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBox_8">
+                 <widget class="QCheckBox" name="checkBox_ZoomBarrita">
                   <property name="text">
                    <string>Control de zoom por barrita</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkBox_9">
+                 <widget class="QCheckBox" name="checkBox_EscalaGrafica">
                   <property name="text">
                    <string>Ver escala gráfica</string>
                   </property>

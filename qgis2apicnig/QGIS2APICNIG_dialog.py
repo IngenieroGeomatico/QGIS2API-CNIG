@@ -91,8 +91,11 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         layers = []
         controls = []
         plugins = []
+
         # Contenido de la tabla:
         # [ 0-> capa superpuesta, 1-> visible, 2-> tipo de capa, 3-> fuente de la capa, 4-> nombre]
+        initialZIndexLayer = 100
+        initialZIndexLayerMax = initialZIndexLayer + tableOfSources.rowCount()
         for r in range(tableOfSources.rowCount()):
             layer={
                 'layerSourceType':'',
@@ -106,9 +109,11 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 'dataSourceUri':'',
                 'QGISlayer':'',
                 'sourceFolder':sourceFolder,
-                'exportFolderSources':exportFolderSources
+                'exportFolderSources':exportFolderSources,
+                'zIndex': initialZIndexLayer - r
             }
-
+            
+            
             for c in range(tableOfSources.columnCount()):
                 item = tableOfSources.item(r, c)
                 if item == None:
@@ -149,7 +154,68 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             layers.append( self.JSONLayer2StringLayer(layer) )      
         
         layers = list(filter( lambda k: '' != k, layers ))        
-        layers = list(reversed(layers))               
+        layers = list(reversed(layers))    
+
+        # Obtención de controles y plugins
+        # ["scale","scaleline","panzoombar","panzoom","location","getfeatureinfo","rotate","backgroundlayers"]
+        checkBox_checkBox_SelectorCapas = self.checkBox_SelectorCapas.isChecked()
+        checkBox_CapasBase = self.checkBox_CapasBase.isChecked()
+        checkBox_Rotacion = self.checkBox_Rotacion.isChecked()
+        checkBox_Localizacion = self.checkBox_Localizacion.isChecked()
+        checkBox_EscalaZoom = self.checkBox_EscalaZoom.isChecked()
+        checkBox_ZoomBotones = self.checkBox_ZoomBotones.isChecked()
+        checkBox_ZoomBarrita = self.checkBox_ZoomBarrita.isChecked()
+        checkBox_EscalaGrafica = self.checkBox_EscalaGrafica.isChecked()
+
+
+        # Comprobación controles
+        print('checkBox_CapasBase', checkBox_CapasBase)
+        if checkBox_CapasBase:
+            controls.append('backgroundlayers')
+        if checkBox_Rotacion:
+            controls.append('rotate')
+        if checkBox_Localizacion:
+            controls.append('location')
+        if checkBox_EscalaZoom:
+            controls.append('scale')
+        if checkBox_ZoomBotones:
+            controls.append('panzoom')
+        if checkBox_ZoomBarrita:
+            controls.append('panzoombar')
+        if checkBox_EscalaGrafica:
+            controls.append('scaleline')
+
+        # Comprobación plugins
+        if checkBox_checkBox_SelectorCapas:
+            stringplugin = """
+                            var css_selectorCapa = document.createElement("link");
+                            css_selectorCapa.rel = "stylesheet";
+                            css_selectorCapa.href = "https://componentes.cnig.es/api-core/plugins/toc/toc.ol.min.css";
+                            document.head.appendChild(css_selectorCapa);
+
+
+                            var js_selectorCapa = document.createElement("script");
+                            js_selectorCapa.type = "text/javascript";
+                            js_selectorCapa.async = false;
+                            js_selectorCapa.src = "https://componentes.cnig.es/api-core/plugins/toc/toc.ol.min.js";
+                            document.head.appendChild(js_selectorCapa);
+
+                            
+                            js_selectorCapa.addEventListener('load', () => {{
+
+                                const mp_selectorCapa = new M.plugin.TOC({
+                                        postition: 'TL',
+                                        collapsed: false,
+                                        collapsible: true,
+                                        tooltip: 'Selector de capa superpuesta'
+                                    });
+
+                                mapajs.addPlugin(mp_selectorCapa);
+
+                            }})
+                            
+                           """
+            plugins.append(stringplugin)
 
         
         extentQGIS = iface.mapCanvas().extent()
@@ -159,7 +225,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         bbox = [ bounds_crs.xMinimum() , bounds_crs.yMinimum() , bounds_crs.xMaximum() , bounds_crs.yMaximum() ]
         
         with open(fileMap, 'w') as filetowrite:
-            filetowrite.write( self.CreateHTML(bbox, layers) )
+            filetowrite.write( self.CreateHTML(bbox, layers, controls, plugins) )
 
         webbrowser.open(fileMap,new=2)
         self.close ()
@@ -187,12 +253,16 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                         url: '{url}',
                                         name: '{name}',
                                         visibility: {visible},
+                                        legend: '{name}',
                                     }})
                                 );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower()
+                                    visible = str(layer['visible']).lower(),
+                                    zindex = layer['zIndex'],
 
                                 )
 
@@ -210,12 +280,16 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                         url: '{url}',
                                         name: '{name}',
                                         visibility: {visible},
+                                        legend: '{name}',
                                     }})
                                 );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower()
+                                    visible = str(layer['visible']).lower(),
+                                    zindex = layer['zIndex'],
 
                                 )
 
@@ -246,12 +320,15 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             format: '{formatWMTS}'
                                         }})
                                 );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     formatWMTS=formatWMTS,
                                     layerWMTS=layerWMTS,
+                                    zindex = layer['zIndex'],
                                 )
 
         elif layer['layerSourceType'] == 'WMS':
@@ -285,12 +362,15 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             format: '{formatWMS}'
                                         }})
                                 );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     formatWMS=formatWMS,
                                     layerWMS=layerWMS,
+                                    zindex = layer['zIndex'],
                                 )
         
         elif layer['layerSourceType'] == 'OGC WFS (Web Feature Service)':
@@ -320,12 +400,15 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             opacity: 1 // aplica opacidad a la capa
                                         }})
                                 );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     layerWFS=layerWFS,
                                     APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
                                 )
         
         elif layer['layerSourceType'] == 'GeoJSON':
@@ -356,12 +439,15 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             opacity: 1 // aplica opacidad a la capa
                                         }})
                                 );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layerGJSON,
                                     APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
                                 )
             
             else:
@@ -423,6 +509,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             }})
                                     );
 
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+
                                 }});
                                 """.format(
                                     sourceFolder = layer['sourceFolder'],
@@ -432,6 +520,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layerGJSON,
                                     APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
                                 )
                 
         elif layer['layerSourceType'] == 'Memory storage':
@@ -488,6 +577,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             }})
                                     );
 
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+
                                 }});
                                 """.format(
                                     sourceFolder = layer['sourceFolder'],
@@ -497,6 +588,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layer['nameLegend'],
                                     APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
                                 )
 
         elif layer['layerSourceType'] == 'OGC API - Features':
@@ -527,12 +619,15 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             opacity: 1 // aplica opacidad a la capa
                                         }})
                                 );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     layerOGCAPI_Features=layerOGCAPI_Features,
                                     APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
             )
 
         elif layer['layerSourceType'] == 'LIBKML':
@@ -562,11 +657,14 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                                 opacity: 1 // aplica opacidad a la capa
                                             }})
                                     );
+
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                     """.format(
                                         url = url,
                                         name = layer['nameLegend'],
                                         visible = str(layer['visible']).lower(),
                                         layerGJSON=layerGJSON,
+                                        zindex = layer['zIndex'],
                                     )
             
             else:
@@ -628,6 +726,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                             }})
                                     );
 
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+
                                 }});
                                 """.format(
                                     sourceFolder = layer['sourceFolder'],
@@ -637,6 +737,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     visible = str(layer['visible']).lower(),
                                     layerGJSON=layerGJSON,
                                     APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
                                 )
                 
         elif layer['layerSourceType'] == 'MVT':
@@ -655,19 +756,22 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     new M.layer.MVT({{
                                         url: '{url}',
                                         name: '{name}',
-                                        extract: true
-                                    }},{{
+                                        extract: true,
                                         visibility: {visible},
+                                        legend: "{name}",
+                                    }},{{
                                         // aplica un estilo a la capa
-                                        style: style: {APICNIGStyle},
+                                        style: {APICNIGStyle},
                                     }})
                                 );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
                                 """.format(
                                     url = url,
                                     name = layer['nameLegend'],
                                     visible = str(layer['visible']).lower(),
                                     APICNIGStyle=APICNIGStyle,
-
+                                    zindex = layer['zIndex'],
                                 )
 
         return stringLayer
@@ -677,12 +781,20 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         qgisLayer= QgsProject.instance().mapLayersByName(qgisLayerLegend)[0]
 
         typeStyle = qgisLayer.renderer().type()
-        legendClassificationAttribute = qgisLayer.renderer().legendClassificationAttribute()
+
+        try:
+            legendClassificationAttribute = qgisLayer.renderer().legendClassificationAttribute()
+        except Exception as e:
+            legendClassificationAttribute = "- - -"
 
         # Una capa puede tener más de une stilo, por lo que cuando en apicnig se permita un array de estilos, 
         # se podrá añadir cada estilo de qgis como un array desde un bucle.
         # De momento se coge el elemento 0
-        propertiesStyle = qgisLayer.renderer().symbol().symbolLayer(0).properties()
+        
+        try:
+            propertiesStyle = qgisLayer.renderer().symbol().symbolLayer(0).properties()
+        except Exception as e:
+            propertiesStyle = "- - -"
 
         print('_____________________________')
         print('typeStyle  :',typeStyle)
@@ -754,36 +866,59 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
         else:
             APICNIGStyle = '''new M.style.Generic({{
-                                                point: {{
-                                                    fill: {{  
-                                                        color: 'orange',
-                                                    }}
-                                                }},
-                                                polygon: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        opacity: 0.5,
-                                                    }},
-                                                    stroke: {{
-                                                        color: 'red',
-                                                        width: 2
-                                                    }}
-                                                }},
-                                                line: {{
-                                                    fill: {{
-                                                        color: 'orange',
-                                                        width: 2
-                                                    }}
-                                                }}
-                                            }})'''
+                                point: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }},
+                                polygon: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }},
+                                line: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }}
+                            }})'''.format(
+                                    fillColorRGB = 'orange',
+                                    fillOpacity=0.6,
+                                    strokeColorRGB='red',
+                                    strokeOpacity=0.8,
+                                    strokeWidth = 2,
+                            )
         
         return APICNIGStyle
 
-    def CreateHTML(self, bbox, layers):
+    def CreateHTML(self, bbox, layers, controls, plugins):
 
         layersString = ''
         for l in layers:
             layersString = layersString + l
+
+        pluginString = ''
+        for l in plugins:
+            pluginString = pluginString + l
+
         html = """<html>
                         <head>
                             <meta charset="UTF-8">
@@ -824,7 +959,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 M.proxy(false) // Necesario para ejecutar el visualizador en local.
                                 const mapajs = M.map({{
                                     container: 'mapaJS_div',
-                                    controls: ['backgroundlayers'],
+                                    controls: {controls},
                                     bbox: {bbox}
                                 }});
                                 
@@ -832,12 +967,16 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 mapajs.addLayers(layers_p)
 
                                 {layers}
+
+                                {plugins}
                                 
                             </script>
                         </body>
                     </html>""".format(
                                     bbox = bbox,
-                                    layers = layersString
+                                    controls=controls,
+                                    layers = layersString,
+                                    plugins = pluginString,
                                 )
         return html
 
