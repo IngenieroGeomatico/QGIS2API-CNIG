@@ -131,6 +131,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                             # print('check visible:  ',chk_box)
                             layer['visible'] = chk_box
                             continue
+                
                 else:
                     text = str(item.text())
 
@@ -155,9 +156,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
                         if layer['dataSourceUri'] == '':
                             layer['dataSourceUri'] = layer['source'] 
-
-            
-            layers.append( self.JSONLayer2StringLayer(layer) )      
+                    
+                if c == tableOfSources.columnCount() -1 :
+                    layers.append( self.JSONLayer2StringLayer(layer) )      
         
         layers = list(filter( lambda k: '' != k, layers ))        
         layers = list(reversed(layers))    
@@ -782,6 +783,74 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     zindex = layer['zIndex'],
                                 )
 
+        elif layer['QGISlayer'].type() == QgsMapLayer.VectorLayer:
+            # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
+                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'
+                options = []
+                options.append("COORDINATE_PRECISION=" + str(6))
+                e, err = QgsVectorFileWriter.writeAsVectorFormat(layer['QGISlayer'], 
+                                                                 pathh + '_tmp',
+                                                                 "utf-8", 
+                                                                 QgsCoordinateReferenceSystem("EPSG:4326"), 
+                                                                 'GeoJson',
+                                                                 0, 
+                                                                 layerOptions=options)
+                if e == QgsVectorFileWriter.NoError:
+                    with open(pathh, mode="w", encoding="utf8") as f:
+                        f.write("var %s = " % ( layer['nameLegend'].replace(" ","").replace("—","_") ))
+                        with open(pathh+ '_tmp', encoding="utf8") as tmpFile:
+                            for line in tmpFile:
+                                line = line.strip("\n\t ")
+                                line = removeSpaces(line)
+                                f.write(line)
+
+                    os.remove(pathh + '_tmp')
+                else:
+                    QgsMessageLog.logMessage(
+                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
+                        "qgis2APICNIG",
+                        level=Qgis.Critical)
+                    return
+                
+                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+
+                stringLayer="""
+                                var js_{name} = document.createElement("script");
+                                js_{name}.type = "text/javascript";
+                                js_{name}.async = false;
+                                js_{name}.src = ".{sourceFolder}/{file}";
+                                document.head.appendChild(js_{name});
+                                js_{name}.addEventListener('load', () => {{
+                                
+                                    mapajs.addLayers(
+                                        new M.layer.GeoJSON({{
+                                                source: {source}, 
+                                                name: '{layerGJSON}',
+                                                legend: "{name}",
+                                                extract: true,
+                                            }}, {{
+                                            // aplica un estilo a la capa
+                                                style: {APICNIGStyle},
+                                                visibility: {visible} // capa no visible en el mapa
+                                            }}, {{
+                                                opacity: 1 // aplica opacidad a la capa
+                                            }})
+                                    );
+
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+
+                                }});
+                                """.format(
+                                    sourceFolder = layer['sourceFolder'],
+                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
+                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    visible = str(layer['visible']).lower(),
+                                    layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
+                                )
+
         return stringLayer
 
     def QGISStyle2APICNIGStyle(self, qgisLayerLegend):
@@ -812,23 +881,36 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
 
         if typeStyle == 'singleSymbol':
+            
+            if 'color' in propertiesStyle:
+                fillColorRGBA_list= propertiesStyle['color'].split(',')
+            else:
+                fillColorRGBA_list= [255, 153, 0, 255/2]
 
-            fillColorRGBA_list= propertiesStyle['color'].split(',')
             fillColorRGB = '''rgb({r}, {g}, {b})'''.format(
                 r = int(fillColorRGBA_list[0]),
                 g = int(fillColorRGBA_list[1]),
                 b = int(fillColorRGBA_list[2]),
             )
+            
             fillOpacity = int(fillColorRGBA_list[3]) / 255 
 
-            strokeColorRGBA_list= propertiesStyle['outline_color'].split(',')
+            if 'outline_color' in propertiesStyle:
+                strokeColorRGBA_list= propertiesStyle['outline_color'].split(',')
+            else:
+                strokeColorRGBA_list= [255, 102, 0, 255]
+
             strokeColorRGB = '''rgb({r}, {g}, {b})'''.format(
                 r = int(strokeColorRGBA_list[0]),
                 g = int(strokeColorRGBA_list[1]),
                 b = int(strokeColorRGBA_list[2]),
             )
             strokeOpacity = int(strokeColorRGBA_list[3]) / 255 
-            strokeWidth = float(propertiesStyle['outline_width'])
+
+            if 'outline_color' in propertiesStyle:
+                strokeWidth = float(propertiesStyle['outline_width'])
+            else:
+                strokeWidth = float(2)
 
             APICNIGStyle = '''new M.style.Generic({{
                                 point: {{
