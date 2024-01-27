@@ -6,11 +6,11 @@
 name=QGIS2API-CNIG
 qgisMinimumVersion=3.0
 description=Complemento que crea un visualizador cartográfico con el contenido del lienzo de QGIS
-version=0.1
+version=0.2
 author=IngenieroGeomatico
 email=aurearagon@gmail.com
 
-about=Este complemento exporta un visualizador cartográfico API-CNIG a partir de los datos cargados en el mapa.
+about=Este complemento exporta un visualizador cartográfico API-CNIG a partir de los datos cargados en el mapa. 
 
 tracker=https://github.com/IngenieroGeomatico/QGIS2API-CNIG
 repository=https://github.com/IngenieroGeomatico/QGIS2API-CNIG
@@ -40,7 +40,7 @@ deprecated=False
 # plugin_dependencies=
 
 Category of the plugin: Raster, Vector, Database or Web
-# category=
+# category= Web
 
 # If the plugin can run on QGIS Server.
 server=False

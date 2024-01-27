@@ -534,8 +534,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
                 stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
-                
-                
+                            
         elif layer['layerSourceType'] == 'Memory storage':
             # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
                 pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'
