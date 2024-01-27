@@ -244,6 +244,45 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             return '"'.join(it if i % 2 else ''.join(it.split())
                             for i, it in enumerate(txt.split('"')))
         
+        def toLocalGeoJSON(layer, layerGJSON, APICNIGStyle):
+            stringLayer="""
+                                var js_{name} = document.createElement("script");
+                                js_{name}.type = "text/javascript";
+                                js_{name}.async = false;
+                                js_{name}.src = ".{sourceFolder}/{file}";
+                                document.head.appendChild(js_{name});
+                                js_{name}.addEventListener('load', () => {{
+                                
+                                    mapajs.addLayers(
+                                        new M.layer.GeoJSON({{
+                                                source: {source}, 
+                                                name: '{layerGJSON}',
+                                                legend: "{name}",
+                                                extract: true,
+                                            }}, {{
+                                            // aplica un estilo a la capa
+                                                style: {APICNIGStyle},
+                                                visibility: {visible} // capa no visible en el mapa
+                                            }}, {{
+                                                opacity: 1 // aplica opacidad a la capa
+                                            }})
+                                    );
+
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+
+                                }});
+                                """.format(
+                                    sourceFolder = layer['sourceFolder'],
+                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
+                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    visible = str(layer['visible']).lower(),
+                                    layerGJSON=layerGJSON,
+                                    APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
+                                )
+            return stringLayer
+        
         stringLayer = ''
 
         if layer['layerSourceType'] == 'XYZ':
@@ -487,48 +526,15 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     return
                 
                 layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
-
                 if layerURI:
                     layerGJSON = layerURI.split('=')[1]
+                else:
+                    layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
 
                 APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
-                stringLayer="""
-                                var js_{name} = document.createElement("script");
-                                js_{name}.type = "text/javascript";
-                                js_{name}.async = false;
-                                js_{name}.src = ".{sourceFolder}/{file}";
-                                document.head.appendChild(js_{name});
-                                js_{name}.addEventListener('load', () => {{
-                                
-                                    mapajs.addLayers(
-                                        new M.layer.GeoJSON({{
-                                                source: {source}, 
-                                                name: '{layerGJSON}',
-                                                legend: "{name}",
-                                                extract: true,
-                                            }}, {{
-                                            // aplica un estilo a la capa
-                                                style: {APICNIGStyle},
-                                                visibility: {visible} // capa no visible en el mapa
-                                            }}, {{
-                                                opacity: 1 // aplica opacidad a la capa
-                                            }})
-                                    );
-
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-
-                                }});
-                                """.format(
-                                    sourceFolder = layer['sourceFolder'],
-                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
-                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    visible = str(layer['visible']).lower(),
-                                    layerGJSON=layerGJSON,
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                )
+                stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
+                
                 
         elif layer['layerSourceType'] == 'Memory storage':
             # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
@@ -560,43 +566,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     return
                 
                 APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-
-                stringLayer="""
-                                var js_{name} = document.createElement("script");
-                                js_{name}.type = "text/javascript";
-                                js_{name}.async = false;
-                                js_{name}.src = ".{sourceFolder}/{file}";
-                                document.head.appendChild(js_{name});
-                                js_{name}.addEventListener('load', () => {{
-                                
-                                    mapajs.addLayers(
-                                        new M.layer.GeoJSON({{
-                                                source: {source}, 
-                                                name: '{layerGJSON}',
-                                                legend: "{name}",
-                                                extract: true,
-                                            }}, {{
-                                            // aplica un estilo a la capa
-                                                style: {APICNIGStyle},
-                                                visibility: {visible} // capa no visible en el mapa
-                                            }}, {{
-                                                opacity: 1 // aplica opacidad a la capa
-                                            }})
-                                    );
-
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-
-                                }});
-                                """.format(
-                                    sourceFolder = layer['sourceFolder'],
-                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
-                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    visible = str(layer['visible']).lower(),
-                                    layerGJSON=layer['nameLegend'],
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                )
+                layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
+                stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
 
         elif layer['layerSourceType'] == 'OGC API - Features':
             
@@ -704,48 +675,14 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     return
                 
                 layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
-
                 if layerURI:
                     layerGJSON = layerURI.split('=')[1]
+                else:
+                    layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
 
                 APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-
-                stringLayer="""
-                                var js_{name} = document.createElement("script");
-                                js_{name}.type = "text/javascript";
-                                js_{name}.async = false;
-                                js_{name}.src = ".{sourceFolder}/{file}";
-                                document.head.appendChild(js_{name});
-                                js_{name}.addEventListener('load', () => {{
-                                
-                                    mapajs.addLayers(
-                                        new M.layer.GeoJSON({{
-                                                source: {source}, 
-                                                name: '{layerGJSON}',
-                                                legend: "{name}",
-                                                extract: true,
-                                            }}, {{
-                                            // aplica un estilo a la capa
-                                                style: {APICNIGStyle},
-                                                visibility: {visible} // capa no visible en el mapa
-                                            }}, {{
-                                                opacity: 1 // aplica opacidad a la capa
-                                            }})
-                                    );
-
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-
-                                }});
-                                """.format(
-                                    sourceFolder = layer['sourceFolder'],
-                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
-                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    visible = str(layer['visible']).lower(),
-                                    layerGJSON=layerGJSON,
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                )
+               
+                stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
                 
         elif layer['layerSourceType'] == 'MVT':
             print(layer['dataSourceUri'])
@@ -812,44 +749,11 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                         level=Qgis.Critical)
                     return
                 
+                layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_"),
+
                 APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
-                stringLayer="""
-                                var js_{name} = document.createElement("script");
-                                js_{name}.type = "text/javascript";
-                                js_{name}.async = false;
-                                js_{name}.src = ".{sourceFolder}/{file}";
-                                document.head.appendChild(js_{name});
-                                js_{name}.addEventListener('load', () => {{
-                                
-                                    mapajs.addLayers(
-                                        new M.layer.GeoJSON({{
-                                                source: {source}, 
-                                                name: '{layerGJSON}',
-                                                legend: "{name}",
-                                                extract: true,
-                                            }}, {{
-                                            // aplica un estilo a la capa
-                                                style: {APICNIGStyle},
-                                                visibility: {visible} // capa no visible en el mapa
-                                            }}, {{
-                                                opacity: 1 // aplica opacidad a la capa
-                                            }})
-                                    );
-
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-
-                                }});
-                                """.format(
-                                    sourceFolder = layer['sourceFolder'],
-                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
-                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    visible = str(layer['visible']).lower(),
-                                    layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                )
+                stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
 
         return stringLayer
 
