@@ -518,6 +518,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 f.write(line)
 
                     os.remove(pathh + '_tmp')
+                
                 else:
                     QgsMessageLog.logMessage(
                         "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
@@ -525,7 +526,11 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                         level=Qgis.Critical)
                     return
                 
-                layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
+                if 'layername=' in layer['dataSourceUri']:
+                    layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
+                else:
+                    layerURI = False
+
                 if layerURI:
                     layerGJSON = layerURI.split('=')[1]
                 else:
@@ -673,7 +678,11 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                         level=Qgis.Critical)
                     return
                 
-                layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
+                if 'layername=' in layer['dataSourceUri']:
+                    layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
+                else:
+                    layerURI = False
+
                 if layerURI:
                     layerGJSON = layerURI.split('=')[1]
                 else:
@@ -856,6 +865,10 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     strokeOpacity=strokeOpacity,
                                     strokeWidth =strokeWidth,
                             )
+
+        # if typeStyle == 'basic':
+            # qgisLayer= QgsProject.instance().mapLayersByName('UA_VT')[0]
+            # qgisLayer.renderer().styles()[0].symbol().symbolLayers()
 
         else:
             APICNIGStyle = '''new M.style.Generic({{
