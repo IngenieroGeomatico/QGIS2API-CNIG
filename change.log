@@ -1,3 +1,8 @@
+=== nuevos desarrollos para v0.3 ===
+
+- Se exportan el estilo básico de los servicios MVT (teselas vectoriales)
+- Se arregla la exportación de archivos locales cuando no tienen nombre de capa asociado
+
 === nuevos desarrollos para v0.2 ===
 
 - Se exportan a geojson local aquellas fuentes de datos no contempladas en apicnig

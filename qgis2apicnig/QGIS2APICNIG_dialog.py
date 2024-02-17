@@ -784,6 +784,10 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             propertiesStyle = qgisLayer.renderer().symbol().symbolLayer(0).properties()
         except Exception as e:
             propertiesStyle = "- - -"
+        try:
+            CategorizedSymbolStyle = qgisLayer.renderer().symbol().symbolLayer(0).properties()
+        except Exception as e:
+            propertiesStyle = "- - -"
 
         print('_____________________________')
         print('typeStyle  :',typeStyle)
@@ -791,8 +795,14 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         print('propertiesStyle :',propertiesStyle)
         print('_____________________________')
 
+        returnStyleDefault = True
 
         if typeStyle == 'singleSymbol':
+            print('/////////////')
+            print(typeStyle)
+            print(qgisLayer.renderer())
+            print('/////////////')
+
             
             if 'color' in propertiesStyle:
                 fillColorRGBA_list= propertiesStyle['color'].split(',')
@@ -865,12 +875,149 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     strokeOpacity=strokeOpacity,
                                     strokeWidth =strokeWidth,
                             )
-
-        # if typeStyle == 'basic':
+            
+            returnStyleDefault = False
+        
+        elif typeStyle == 'basic':
+            # print('/////////////')
             # qgisLayer= QgsProject.instance().mapLayersByName('UA_VT')[0]
             # qgisLayer.renderer().styles()[0].symbol().symbolLayers()
+            # print(qgisLayer.renderer())
+
+            lineStyle = 'line:{}'
+            polygonStyle = 'polygon:{}'
+            pointStyle = 'point:{}'
+            for style in qgisLayer.renderer().styles():
+                print(style.symbol())
+                print(style.symbol().type(), str(style.symbol().type()))
+                print(style.symbol().symbolLayer(0).properties())
+
+                propertiesStyle = style.symbol().symbolLayer(0).properties()
+                
+
+                if 'color' in propertiesStyle:
+                    fillColorRGBA_list= propertiesStyle['color'].split(',')
+                else:
+                    fillColorRGBA_list= [255, 153, 0, 255/2]
+
+                fillColorRGB = '''rgb({r}, {g}, {b})'''.format(
+                    r = int(fillColorRGBA_list[0]),
+                    g = int(fillColorRGBA_list[1]),
+                    b = int(fillColorRGBA_list[2]),
+                )
+                
+                fillOpacity = int(fillColorRGBA_list[3]) / 255 
+
+                if 'outline_color' in propertiesStyle:
+                    strokeColorRGBA_list= propertiesStyle['outline_color'].split(',')
+                else:
+                    strokeColorRGBA_list= [255, 102, 0, 255]
+
+                strokeColorRGB = '''rgb({r}, {g}, {b})'''.format(
+                    r = int(strokeColorRGBA_list[0]),
+                    g = int(strokeColorRGBA_list[1]),
+                    b = int(strokeColorRGBA_list[2]),
+                )
+                strokeOpacity = int(strokeColorRGBA_list[3]) / 255 
+
+                if 'outline_color' in propertiesStyle:
+                    strokeWidth = float(propertiesStyle['outline_width'])
+                else:
+                    strokeWidth = float(2)
+
+                if str(style.symbol().type()) == 'SymbolType.Fill':
+                    polygonStyle = '''
+                        polygon: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }}
+                    '''.format(
+                                    fillColorRGB = fillColorRGB,
+                                    fillOpacity=fillOpacity,
+                                    strokeColorRGB=strokeColorRGB,
+                                    strokeOpacity=strokeOpacity,
+                                    strokeWidth =strokeWidth,
+                            )
+                    returnStyleDefault = False
+                
+                elif str(style.symbol().type()) == 'SymbolType.Line':
+                    lineStyle = '''
+                        line: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }}
+                    '''.format(
+                                    fillColorRGB = fillColorRGB,
+                                    fillOpacity=fillOpacity,
+                                    strokeColorRGB=strokeColorRGB,
+                                    strokeOpacity=strokeOpacity,
+                                    strokeWidth =strokeWidth,
+                            )
+                    returnStyleDefault = False
+                
+                elif str(style.symbol().type()) == 'SymbolType.Marker':
+                    pointStyle = '''
+                        point: {{
+                                    fill: {{
+                                        color: '{fillColorRGB}',
+                                        opacity: {fillOpacity},
+                                    }},
+                                    stroke: {{
+                                        color: '{strokeColorRGB}',
+                                        opacity: {strokeOpacity},
+                                        width: {strokeWidth}, 
+                                    }}
+                                }}
+                    '''.format(
+                                    fillColorRGB = fillColorRGB,
+                                    fillOpacity=fillOpacity,
+                                    strokeColorRGB=strokeColorRGB,
+                                    strokeOpacity=strokeOpacity,
+                                    strokeWidth =strokeWidth,
+                            )
+                    returnStyleDefault = False
+                
+                else:
+                    continue
+           
+            APICNIGStyle = '''new M.style.Generic({{
+                                {point},
+                                {polygon},
+                                {line}
+                            }})'''.format(
+                                    point = pointStyle,
+                                    polygon = polygonStyle,
+                                    line = lineStyle
+                            )
+                      
+           
+            # print('/////////////')
+
+            
+
+        elif typeStyle == 'categorizedSymbol':
+            print('/////////////')
+            print(qgisLayer.renderer())
+            print('/////////////')
 
         else:
+            returnStyleDefault = True
+
+        if returnStyleDefault:
             APICNIGStyle = '''new M.style.Generic({{
                                 point: {{
                                     fill: {{
@@ -913,6 +1060,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     strokeWidth = 2,
                             )
         
+
         return APICNIGStyle
 
     def CreateHTML(self, bbox, layers, controls, plugins):
