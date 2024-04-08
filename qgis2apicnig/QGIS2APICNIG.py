@@ -302,6 +302,8 @@ class QGIS2APICNIG:
                     storageType = "TMS"
                 elif "tileMatrixSet" in uri:
                     storageType = "WMTS"
+                elif not 'url=' in uri:
+                    storageType = "---"
                 elif layer.providerType() == 'wms':
                     storageType = "WMS"
             else:

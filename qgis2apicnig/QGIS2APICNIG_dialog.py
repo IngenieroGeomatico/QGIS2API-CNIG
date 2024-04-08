@@ -91,6 +91,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         layers = []
         controls = []
         plugins = []
+        pluginImports = []
 
         # Contenido de la tabla:
         # [ 0-> capa superpuesta, 1-> visible, 2-> tipo de capa, 3-> fuente de la capa, 4-> nombre]
@@ -194,34 +195,29 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # Comprobación plugins
         if checkBox_checkBox_SelectorCapas:
+            headerImports = """
+                            <link href="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher.ol.min.css" rel="stylesheet" />
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher.ol.min.js"></script>
+            """
             stringplugin = """
-                            var css_selectorCapa = document.createElement("link");
-                            css_selectorCapa.rel = "stylesheet";
-                            css_selectorCapa.href = "https://componentes.cnig.es/api-core/plugins/toc/toc.ol.min.css";
-                            document.head.appendChild(css_selectorCapa);
+                            const mp_selectorCapa = new M.plugin.Layerswitcher({
+                                    position: 'TR',
+                                    collapsed: false,
+                                    collapsible: true,
+                                    https: true,
+                                    http: true,
+                                    tooltip: 'Selector de capa superpuesta',
+                                    showCatalog: true,
+                                    displayLabel: false,
+                                    addLayers: true,
+                                    statusLayers: true,
+                                    modeSelectLayers: 'eyes', // opciones: 'eyes', 'radio'
+                                    tools: ['transparency', 'legend', 'zoom', 'information', 'style', 'delete']
+                                });
 
-
-                            var js_selectorCapa = document.createElement("script");
-                            js_selectorCapa.type = "text/javascript";
-                            js_selectorCapa.async = false;
-                            js_selectorCapa.src = "https://componentes.cnig.es/api-core/plugins/toc/toc.ol.min.js";
-                            document.head.appendChild(js_selectorCapa);
-
-                            
-                            js_selectorCapa.addEventListener('load', () => {{
-
-                                const mp_selectorCapa = new M.plugin.TOC({
-                                        postition: 'TL',
-                                        collapsed: false,
-                                        collapsible: true,
-                                        tooltip: 'Selector de capa superpuesta'
-                                    });
-
-                                mapajs.addPlugin(mp_selectorCapa);
-
-                            }})
-                            
+                            mapajs.addPlugin(mp_selectorCapa);
                            """
+            pluginImports.append(headerImports)
             plugins.append(stringplugin)
 
         
@@ -232,7 +228,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         bbox = [ bounds_crs.xMinimum() , bounds_crs.yMinimum() , bounds_crs.xMaximum() , bounds_crs.yMaximum() ]
         
         with open(fileMap, 'w') as filetowrite:
-            filetowrite.write( self.CreateHTML(bbox, layers, controls, plugins) )
+            filetowrite.write( self.CreateHTML(bbox, layers, controls, plugins,pluginImports) )
 
         webbrowser.open(fileMap,new=2)
         self.close ()
@@ -835,46 +831,46 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 strokeWidth = float(2)
 
             APICNIGStyle = '''new M.style.Generic({{
-                                point: {{
-                                    fill: {{
-                                        color: '{fillColorRGB}',
-                                        opacity: {fillOpacity},
-                                    }},
-                                    stroke: {{
-                                        color: '{strokeColorRGB}',
-                                        opacity: {strokeOpacity},
-                                        width: {strokeWidth}, 
-                                    }}
-                                }},
-                                polygon: {{
-                                    fill: {{
-                                        color: '{fillColorRGB}',
-                                        opacity: {fillOpacity},
-                                    }},
-                                    stroke: {{
-                                        color: '{strokeColorRGB}',
-                                        opacity: {strokeOpacity},
-                                        width: {strokeWidth}, 
-                                    }}
-                                }},
-                                line: {{
-                                    fill: {{
-                                        color: '{fillColorRGB}',
-                                        opacity: {fillOpacity},
-                                    }},
-                                    stroke: {{
-                                        color: '{strokeColorRGB}',
-                                        opacity: {strokeOpacity},
-                                        width: {strokeWidth}, 
-                                    }}
-                                }}
-                            }})'''.format(
-                                    fillColorRGB = fillColorRGB,
-                                    fillOpacity=fillOpacity,
-                                    strokeColorRGB=strokeColorRGB,
-                                    strokeOpacity=strokeOpacity,
-                                    strokeWidth =strokeWidth,
-                            )
+                                            point: {{
+                                                fill: {{
+                                                    color: '{fillColorRGB}',
+                                                    opacity: {fillOpacity},
+                                                }},
+                                                stroke: {{
+                                                    color: '{strokeColorRGB}',
+                                                    opacity: {strokeOpacity},
+                                                    width: {strokeWidth}, 
+                                                }}
+                                            }},
+                                            polygon: {{
+                                                fill: {{
+                                                    color: '{fillColorRGB}',
+                                                    opacity: {fillOpacity},
+                                                }},
+                                                stroke: {{
+                                                    color: '{strokeColorRGB}',
+                                                    opacity: {strokeOpacity},
+                                                    width: {strokeWidth}, 
+                                                }}
+                                            }},
+                                            line: {{
+                                                fill: {{
+                                                    color: '{fillColorRGB}',
+                                                    opacity: {fillOpacity},
+                                                }},
+                                                stroke: {{
+                                                    color: '{strokeColorRGB}',
+                                                    opacity: {strokeOpacity},
+                                                    width: {strokeWidth}, 
+                                                }}
+                                            }}
+                                        }})'''.format(
+                                                fillColorRGB = fillColorRGB,
+                                                fillOpacity=fillOpacity,
+                                                strokeColorRGB=strokeColorRGB,
+                                                strokeOpacity=strokeOpacity,
+                                                strokeWidth =strokeWidth,
+                                        )
             
             returnStyleDefault = False
         
@@ -995,9 +991,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     continue
            
             APICNIGStyle = '''new M.style.Generic({{
-                                {point},
-                                {polygon},
-                                {line}
+                                        {point},
+                                        {polygon},
+                                        {line}
                             }})'''.format(
                                     point = pointStyle,
                                     polygon = polygonStyle,
@@ -1063,7 +1059,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
         return APICNIGStyle
 
-    def CreateHTML(self, bbox, layers, controls, plugins):
+    def CreateHTML(self, bbox, layers, controls, plugins, headerImports):
 
         layersString = ''
         for l in layers:
@@ -1073,9 +1069,17 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         for l in plugins:
             pluginString = pluginString + l
 
-        html = """<html>
+        headerImportsString = ''
+        for l in headerImports:
+            headerImportsString = headerImportsString + l
+
+        html = """<!DOCTYPE html>
+                    <html>
                         <head>
                             <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+                            <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+                            <meta name="cnig" content="yes">
                             <title>Visualizador API-CNIG</title>
                             
                             <!-- Estilo de la API -->
@@ -1095,6 +1099,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                             <script type="text/javascript" src="https://componentes.cnig.es/api-core/vendor/browser-polyfill.js"></script>
                             <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/apiign.ol.min.js"></script>
                             <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration.js"></script>
+
+                            <!-- Importación de extensiones -->
+                            {headerImports}
                             
                         </head>
                         
@@ -1131,6 +1138,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     controls=controls,
                                     layers = layersString,
                                     plugins = pluginString,
+                                    headerImports=headerImportsString,
                                 )
         return html
 
