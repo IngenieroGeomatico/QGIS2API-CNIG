@@ -241,8 +241,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                             for i, it in enumerate(txt.split('"')))
         
         def toLocalGeoJSON(layer, layerGJSON, APICNIGStyle):
-
-            stringLayer="""
+            if type(APICNIGStyle) != list:
+                stringLayer="""
                                 var js_{name} = document.createElement("script");
                                 js_{name}.type = "text/javascript";
                                 js_{name}.async = false;
@@ -278,6 +278,50 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     APICNIGStyle=APICNIGStyle,
                                     zindex = layer['zIndex'],
                                 )
+            
+            else:
+                stringLayer="""
+                                var js_{name} = document.createElement("script");
+                                js_{name}.type = "text/javascript";
+                                js_{name}.async = false;
+                                js_{name}.src = ".{sourceFolder}/{file}";
+                                document.head.appendChild(js_{name});
+                                js_{name}.addEventListener('load', () => {{
+                                    
+                                    {stylesCategoric}
+
+                                    mapajs.addLayers(
+                                        new M.layer.GeoJSON({{
+                                                source: {source}, 
+                                                name: '{layerGJSON}',
+                                                legend: "{name}",
+                                                extract: true,
+                                            }}, {{
+                                            // aplica un estilo a la capa
+                                                style: {APICNIGStyle},
+                                                visibility: {visible} // capa no visible en el mapa
+                                            }}, {{
+                                                opacity: 1 // aplica opacidad a la capa
+                                            }})
+                                    );
+
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+
+                                }});
+                                """.format(
+                                    stylesCategoric= APICNIGStyle[1],
+                                    sourceFolder = layer['sourceFolder'],
+                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
+                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
+                                    visible = str(layer['visible']).lower(),
+                                    layerGJSON=layerGJSON,
+                                    APICNIGStyle=APICNIGStyle[0],
+                                    zindex = layer['zIndex'],
+                                )
+            
+
+            
             return stringLayer
         
         stringLayer = ''
@@ -1004,11 +1048,98 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
            
             # print('/////////////')
 
-            
-
         elif typeStyle == 'categorizedSymbol':
             print('/////////////')
-            print(qgisLayer.renderer())
+            APICNIGStyleCategoric = ""
+            categoricList = {}
+            i = 0
+            for categoria in qgisLayer.renderer().categories():
+                i += 1
+                valueAtribute = categoria.value()
+                propertiesStyle = categoria.symbol().symbolLayer(0).properties()
+                print(valueAtribute , '///', propertiesStyle)
+
+                if 'color' in propertiesStyle:
+                    fillColorRGBA_list= propertiesStyle['color'].split(',')
+                else:
+                    fillColorRGBA_list= [255, 153, 0, 255/2]
+
+                fillColorRGB = '''rgb({r}, {g}, {b})'''.format(
+                    r = int(fillColorRGBA_list[0]),
+                    g = int(fillColorRGBA_list[1]),
+                    b = int(fillColorRGBA_list[2]),
+                )
+                
+                fillOpacity = int(fillColorRGBA_list[3]) / 255 
+
+                if 'outline_color' in propertiesStyle:
+                    strokeColorRGBA_list= propertiesStyle['outline_color'].split(',')
+                else:
+                    strokeColorRGBA_list= [255, 102, 0, 255]
+
+                strokeColorRGB = '''rgb({r}, {g}, {b})'''.format(
+                    r = int(strokeColorRGBA_list[0]),
+                    g = int(strokeColorRGBA_list[1]),
+                    b = int(strokeColorRGBA_list[2]),
+                )
+                strokeOpacity = int(strokeColorRGBA_list[3]) / 255 
+
+                if 'outline_color' in propertiesStyle:
+                    strokeWidth = float(propertiesStyle['outline_width'])
+                else:
+                    strokeWidth = float(2)
+                
+                categoricList[valueAtribute] = "__{}_{}__".format(legendClassificationAttribute,i)
+                APICNIGStyle_category = ''' var {legendClassificationAttribute}_{i} = new M.style.Generic({{
+                                            point: {{
+                                                fill: {{
+                                                    color: '{fillColorRGB}',
+                                                    opacity: {fillOpacity},
+                                                }},
+                                                stroke: {{
+                                                    color: '{strokeColorRGB}',
+                                                    opacity: {strokeOpacity},
+                                                    width: {strokeWidth}, 
+                                                }}
+                                            }},
+                                            polygon: {{
+                                                fill: {{
+                                                    color: '{fillColorRGB}',
+                                                    opacity: {fillOpacity},
+                                                }},
+                                                stroke: {{
+                                                    color: '{strokeColorRGB}',
+                                                    opacity: {strokeOpacity},
+                                                    width: {strokeWidth}, 
+                                                }}
+                                            }},
+                                            line: {{
+                                                fill: {{
+                                                    color: '{fillColorRGB}',
+                                                    opacity: {fillOpacity},
+                                                }},
+                                                stroke: {{
+                                                    color: '{strokeColorRGB}',
+                                                    opacity: {strokeOpacity},
+                                                    width: {strokeWidth}, 
+                                                }}
+                                            }}
+                                        }}) \n'''.format(
+                                                legendClassificationAttribute=legendClassificationAttribute,
+                                                i=i,
+                                                fillColorRGB = fillColorRGB,
+                                                fillOpacity=fillOpacity,
+                                                strokeColorRGB=strokeColorRGB,
+                                                strokeOpacity=strokeOpacity,
+                                                strokeWidth =strokeWidth,
+                                        )
+
+                APICNIGStyleCategoric += APICNIGStyle_category
+
+            APICNIGStyle = """new M.style.Category("{name}", {list})""".format(name=legendClassificationAttribute, list=categoricList)
+            APICNIGStyle = APICNIGStyle.replace("'__","").replace("__'","")
+            APICNIGStyle = [APICNIGStyle, APICNIGStyleCategoric]
+            returnStyleDefault = False
             print('/////////////')
 
         else:
