@@ -241,6 +241,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                             for i, it in enumerate(txt.split('"')))
         
         def toLocalGeoJSON(layer, layerGJSON, APICNIGStyle):
+
             stringLayer="""
                                 var js_{name} = document.createElement("script");
                                 js_{name}.type = "text/javascript";
@@ -683,7 +684,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     layerGJSON = layerURI.split('=')[1]
                 else:
                     layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
-
+                
                 APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
                
                 stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
@@ -752,8 +753,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                         "qgis2APICNIG",
                         level=Qgis.Critical)
                     return
-                
-                layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_"),
+     
+                layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
 
                 APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
