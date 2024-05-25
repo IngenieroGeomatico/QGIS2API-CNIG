@@ -1090,7 +1090,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                     strokeWidth = float(2)
                 
                 categoricList[valueAtribute] = "__{}_{}__".format(legendClassificationAttribute,i)
-                APICNIGStyle_category = ''' var {legendClassificationAttribute}_{i} = new M.style.Generic({{
+                APICNIGStyle_category = ''' 
+                                        var {legendClassificationAttribute}_{i} = new M.style.Generic({{
                                             point: {{
                                                 fill: {{
                                                     color: '{fillColorRGB}',

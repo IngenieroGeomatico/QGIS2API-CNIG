@@ -1,3 +1,8 @@
+=== nuevos desarrollos para v0.5 ===
+
+- Se arregla problema al definir el nombre de las capas vectoriales
+- Se añade estilo categórico a la exportación
+
 === nuevos desarrollos para v0.4 ===
 
 - Se añade el nuevo selector de capas
