@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="cnig" content="yes">
+        <title>Visualizador API-CNIG</title>
+        
+        <!-- Estilo de la API -->
+        <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign.ol.min.css">
+        
+        <style type="text/css">
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow: hidden;
+            }
+
+            .compareMaps{
+                position: absolute;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            /* Compare 50% */
+            .compare #mapaJS_div {
+            width: 50%;
+            }
+            .compare #mapaJS_div_2 {
+            left: 50%;
+            width: 50%;
+            }
+
+
+            .tools {
+                text-align: center;
+                display: inline-block;
+                width: 100%;
+                height: 40px;
+                background: #eee;
+                }
+                .tools i {
+                font-size: 2em;
+                cursor: pointer;
+                display: inline-block;
+            }
+        </style>
+        
+        <!-- Ficheros javascript de la API -->
+        <script type="text/javascript" src="https://componentes.cnig.es/api-core/vendor/browser-polyfill.js"></script>
+        <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/apiign.ol.min.js"></script>
+        <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration.js"></script>
+
+        <!-- Importación de extensiones -->
+        
+        <link href="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher.ol.min.css" rel="stylesheet" />
+        <script type="text/javascript" src="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher.ol.min.js"></script>
+        
+
+        <!-- ol-ext -->
+        <link href="https://viglino.github.io/font-gis/css/font-gis.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://viglino.github.io/ol-ext/dist/ol-ext.css" />
+        <script type="text/javascript" src="https://viglino.github.io/ol-ext/dist/ol-ext.js"></script>
+
+
+        <!-- URLS -->
+        <!-- view-source:https://viglino.github.io/ol-ext/examples/misc/map.compare.html -->
+        <!-- https://viglino.github.io/font-gis/?fg=map-o -->
+        
+    </head>
+    
+    <body>
+        <!-- div comparación -->
+        <div class="tools">
+            <i class="fg-map-add" onclick="setMode('addMap')" title="Add Map"></i>
+            <i class="fg-map-o" onclick="setMode('view1')" title="View Map"></i>
+            <i class="fg-screen-dub" onclick="setMode('compare')" title="Compare"></i>
+            <i class="fg-screen-split-h" onclick="setMode('swipev')" title="Swipe V"></i>
+            <i class="fg-screen-split-v" onclick="setMode('swipeh')" title="Swipe V"></i>
+            <i class="fg-screen-mag-alt" onclick="setMode('clip')" title="Clip"></i>
+        </div>
+            
+        <!-- Contenedor principal del mapa -->
+         <div id="compareMaps" style="height: 100%;">
+            <div id="mapaJS_div" class="m-container m-mapea-container compareMaps"></div>
+            <div id="mapaJS_div_2" class="m-container m-mapea-container compareMaps"></div>
+        </div>
+        
+        <script type="text/javascript">
+            
+            // Configuración del mapa
+            let zoomInicial = 5
+            let longLatInicial = [-3, 40]
+            const zoom_p = M.config.MAP_VIEWER_ZOOM || zoomInicial;
+            const center_p = M.config.MAP_VIEWER_CENTER || ol.proj.fromLonLat(longLatInicial);
+            
+            M.proxy(false) // Necesario para ejecutar el visualizador en local.
+            const mapajs = M.map({
+                container: 'mapaJS_div',
+                controls: ['backgroundlayers'],
+                bbox: [-7711689.624538593, 2583849.10320135, 6722971.85545639, 6327793.722126087]
+            });
+            
+            const layers_p = M.config.MAP_VIEWER_LAYERS || [];
+            mapajs.addLayers(layers_p)
+
+            
+            mapajs.addTMS(
+                new M.layer.TMS({
+                    url: 'https://tms-pnoa-ma.idee.es/1.0.0/pnoa-ma/{z}/{x}/{-y}.jpeg',
+                    name: 'PNOA',
+                    visibility: true,
+                    legend: 'PNOA',
+                })
+            );
+            mapajs.getLayers().filter( (layer) => layer.legend == "PNOA" )[0].setZIndex(100)
+            
+            
+            const mp_selectorCapa = new M.plugin.Layerswitcher({
+                    position: 'TR',
+                    collapsed: false,
+                    collapsible: true,
+                    https: true,
+                    http: true,
+                    tooltip: 'Selector de capa superpuesta',
+                    showCatalog: true,
+                    displayLabel: false,
+                    addLayers: true,
+                    statusLayers: true,
+                    modeSelectLayers: 'eyes', // opciones: 'eyes', 'radio'
+                    tools: ['transparency', 'legend', 'zoom', 'information', 'style', 'delete']
+                });
+            mapajs.addPlugin(mp_selectorCapa);
+
+
+            // Comparación
+            listaMapas = []
+            mapaJS_OL = mapajs.getMapImpl()
+
+            listaMapas.push({'titulo':'MapaPrincipal','mapa':mapaJS_OL})
+            
+    
+            mapajs2 = createMapWithExistingView('mapaJS_div_2', [], [], [], []);
+
+            mapaJS_OL_2 = mapajs2.getMapImpl()
+            mapaJS_OL_2.setTarget('mapaJS_div_2')
+            listaMapas.push({'titulo':'Mapa 2','mapa':mapaJS_OL_2})
+
+
+
+            // Select interaction
+            var select1 = new ol.interaction.Select({ condition: ol.events.condition.click });
+            mapaJS_OL.addInteraction(select1);
+            var select2 = new ol.interaction.Select({ condition: ol.events.condition.click });
+            mapaJS_OL_2.addInteraction(select2);
+
+
+            // Synchronize the maps 
+            mapaJS_OL.addInteraction( new ol.interaction.Synchronize({ maps: [mapaJS_OL_2] }) );
+            mapaJS_OL_2.addInteraction( new ol.interaction.Synchronize({ maps: [mapaJS_OL] }) );
+
+
+            // Tools
+            /* Use layer clipping * /
+            var clip = new ol.interaction.Clip({ radius: 150, layers: map2.getLayers().getArray() });
+            var swipe = new ol.control.Swipe({ rightLayers: map2.getLayers().getArray(),  });
+            /*/
+            var clip = new ol.interaction.ClipMap({ radius: 150 });
+            var swipe = new ol.control.SwipeMap({ right: true  });
+            /**/
+
+
+
+            // Change mode
+            var currentMode;
+            function setMode(mode) {
+                if (mode) {
+                currentMode = mode;
+                // Remove tools
+                mapaJS_OL_2.removeControl(swipe);
+                mapaJS_OL_2.removeInteraction(clip);
+                // Set interactions
+                switch (mode) {
+                    case 'swipev':
+                    case 'swipeh': {
+                    mapaJS_OL_2.addControl(swipe);
+                    swipe.set('orientation', (mode==='swipev' ? 'vertical' : 'horizontal'));
+                    break;
+                    }
+                    case 'clip': {
+                    mapaJS_OL_2.addInteraction(clip);
+                    break;
+                    }
+                }
+                // Update position
+                document.getElementById("compareMaps").className = mode;
+                select1.getFeatures().clear();
+                select2.getFeatures().clear();
+                }
+                mapaJS_OL.updateSize();
+                mapaJS_OL_2.updateSize();
+            }
+
+            // Check click and dispatch to map
+            mapaJS_OL_2.on('click', function(e) {
+                if (/swipe/.test(currentMode)) {
+                if (!ol.extent.containsCoordinate(swipe.getRectangle(), e.pixel)) {
+                    // Simulate map1 selection
+                    e.map = map;
+                    e.stopPropagation();
+                    select2.getFeatures().clear();
+                    select1.handleEvent(e);
+                } else {
+                    select1.getFeatures().clear();
+                }
+                }
+            });
+
+
+
+            // Función crear mapa
+            function createMapWithExistingView(idDiv, capas, vista, controles, extensiones) {
+                let mapObj = M.map({
+                    container: idDiv,
+                    controls: ['backgroundlayers'],
+                });
+                return mapObj;
+            }
+
+        
+            
+        </script>
+    </body>
+</html>
