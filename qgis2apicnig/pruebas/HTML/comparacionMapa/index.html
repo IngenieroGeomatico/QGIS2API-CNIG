@@ -10,7 +10,7 @@
         <!-- Estilo de la API -->
         <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign.ol.min.css">
         
-        <style type="text/css">
+        <style type="text/css"  id="idStyle">
             html,
             body {
                 margin: 0;
@@ -19,20 +19,124 @@
                 overflow: hidden;
             }
 
+
+
+            /* The Modal (background) */
+            .modal {
+                display: none; /* Hidden by default */
+                position: fixed; /* Stay in place */
+                z-index: 100; /* Sit on top */
+                padding-top: 100px; /* Location of the box */
+                left: 0;
+                top: 0;
+                width: 100%; /* Full width */
+                height: 100%; /* Full height */
+                overflow: auto; /* Enable scroll if needed */
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            }
+
+            /* Modal Content */
+            .modal-content {
+                background-color: #fefefe;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                max-height: 75vh;
+                overflow: scroll;
+            }
+
+            /* The Close Button */
+            .close {
+                color: #aaaaaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+
+            .close:hover,
+            .close:focus {
+                color: #000;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            select {
+                margin-block: 5px;
+            }
+
+            td i {
+                font-size: 30px;
+            }
+
+            #tablaConfig {
+                font-family: Arial, Helvetica, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            #tablaConfig td, #tablaConfig th {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+
+            #tablaConfig tr:nth-child(even){background-color: #f2f2f2;}
+
+            #tablaConfig tr:hover {background-color: #ddd;}
+
+            #tablaConfig th {
+                padding-top: 12px;
+                padding-bottom: 12px;
+                text-align: left;
+                background-color: #f57105;
+                color: white;
+            }
+
+            .grid-container {
+                display: grid;
+                grid-template-columns: auto auto;
+            }
+
+            .aceptar{
+                background-color: #04AA6D; /* Green */
+                border: none;
+                color: white;
+                padding: 12px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 8px;
+            }
+
+
+
+
+
+            .m-mapea-container {
+                background-image: none
+            }
+
             .compareMaps{
                 position: absolute;
                 left: 0;
                 width: 100%;
                 height: 100%;
+                height: calc(100vh - 45px);
+                
             }
 
             /* Compare 50% */
             .compare #mapaJS_div {
-            width: 50%;
+                left: 50%;
+                width: 50%;
             }
             .compare #mapaJS_div_2 {
-            left: 50%;
-            width: 50%;
+                /* left: 50%; */
+                width: 50%;
             }
 
 
@@ -40,13 +144,27 @@
                 text-align: center;
                 display: inline-block;
                 width: 100%;
-                height: 40px;
+                height: 45px;
                 background: #eee;
-                }
-                .tools i {
+            }
+            .tools i {
                 font-size: 2em;
                 cursor: pointer;
                 display: inline-block;
+            }
+
+            #compareMaps .m-panel button{
+                background-color:#ff6600  !important
+            }
+            #compareMaps .m-background-group-btn.activeBaseLayerButton {
+                background-color: orange !important;
+            }
+            #compareMaps .m-panel section button{
+                background-color:transparent !important
+            }
+
+            .modal .m-content{
+                right: -50%;
             }
         </style>
         
@@ -77,20 +195,128 @@
     </head>
     
     <body>
+
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Configuración de comparación</h3>
+
+                <table id="tablaConfig">
+                    <tr>
+                        <th>Botón</th>
+                        <th>Acción</th>
+                        <th>Configuración</th>
+                    </tr>
+                    <tr>
+                        <td><i class="fg-map-add"></i></td>
+                        <td>Al hacer clic, añade un nuevo mapa</td>
+                        <td> - </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fg-map-o"></i></td>
+                        <td>Permite ver un único mapa seleccionado</td>
+                        <td>  
+                            <div class="grid-container">
+                                <p>Mapa:</p>
+                                <select id="selectorMapasUnico" class="selectorMapasClase" name="Selector de mapa">
+
+                                  </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fg-screen-dub"></i></td>
+                        <td>Permite la comparación en espejo</td>
+                        <td>  
+                            <div class="grid-container">
+                                <p>Mapa izquierdo:</p>
+                                <select id="selectorMapasEspejoIzq" class="selectorMapasClase" name="Selector de mapa">
+
+                                  </select>
+                                  <p>Mapa derecho:</p>
+                                  <select id="selectorMapasEspejoDer" class="selectorMapasClase" name="Selector de mapa">
+
+                                    </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fg-screen-split-h"></i></td>
+                        <td>Permite al comparación en cortina horizontal</td>
+                        <td>  
+                            <div class="grid-container">
+                                <p>Mapa izquierdo:</p>
+                                <select id="selectorMapasHCortinillaIzq" class="selectorMapasClase" name="Selector de mapa">
+  
+                                  </select>
+                                  <p>Mapa derecho:</p>
+                                  <select id="selectorMapasHCortinillaDer" class="selectorMapasClase" name="Selector de mapa">
+   
+                                    </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fg-screen-split-v"></i></td>
+                        <td>Permite al comparación en cortina vertical</td>
+                        <td>  
+                            <div class="grid-container">
+                                <p>Mapa arriba:</p>
+                                <select id="selectorMapasVCortinillaIzq" class="selectorMapasClase" name="Selector de mapa">
+
+                                  </select>
+                                  <p>Mapa abajo:</p>
+                                  <select id="selectorMapasVCortninillaDer" class="selectorMapasClase" name="Selector de mapa">
+   
+                                    </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="fg-screen-mag-alt"></i></td>
+                        <td>Permite la comparación zonal</td>
+                        <td>  
+                            <div class="grid-container">
+                                <p>Mapa fondo:</p>
+                                <select id="selectorMapasCirculoFondo" class="selectorMapasClase" name="Selector de mapa">
+
+                                  </select>
+                                  <p>Mapa círculo:</p>
+                                  <select id="selectorMapasCirculoCir" class="selectorMapasClase" name="Selector de mapa">
+
+                                    </select>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                
+                <button id="idAceptar" class="aceptar">aceptar</button>
+
+            </div>
+        
+        </div>
+
+
         <!-- div comparación -->
         <div class="tools">
-            <i class="fg-map-add" onclick="setMode('addMap')" title="Add Map"></i>
-            <i class="fg-map-o" onclick="setMode('view1')" title="View Map"></i>
+            <i class="fg-map-add" onclick="setMode('addMap')" title="Añadir mapa"></i>
+            <i class="fg-map-o" onclick="setMode('view1')" title="Mapa único"></i>
             <i class="fg-screen-dub" onclick="setMode('compare')" title="Compare"></i>
             <i class="fg-screen-split-h" onclick="setMode('swipev')" title="Swipe V"></i>
             <i class="fg-screen-split-v" onclick="setMode('swipeh')" title="Swipe V"></i>
             <i class="fg-screen-mag-alt" onclick="setMode('clip')" title="Clip"></i>
+            <i class="fg-map-options-alt" onclick="setMode('settings')" title="comfiguración"></i>
         </div>
             
         <!-- Contenedor principal del mapa -->
-         <div id="compareMaps" style="height: 100%;">
-            <div id="mapaJS_div" class="m-container m-mapea-container compareMaps"></div>
-            <div id="mapaJS_div_2" class="m-container m-mapea-container compareMaps"></div>
+         <div id="compareMaps">
+
+            <div id="mapaJS_div" class="m-container m-mapea-container compareMaps" style="z-index: 1;"></div>
+            <div id="mapaJS_div_2" class="m-container m-mapea-container compareMaps" style="z-index: 0;"></div>
+            
         </div>
         
         <script type="text/javascript">
@@ -123,7 +349,7 @@
             mapajs.getLayers().filter( (layer) => layer.legend == "PNOA" )[0].setZIndex(100)
             
             
-            const mp_selectorCapa = new M.plugin.Layerswitcher({
+            let mp_selectorCapa = new M.plugin.Layerswitcher({
                     position: 'TR',
                     collapsed: false,
                     collapsible: true,
@@ -144,10 +370,10 @@
             listaMapas = []
             mapaJS_OL = mapajs.getMapImpl()
 
-            listaMapas.push({'titulo':'MapaPrincipal','mapa':mapaJS_OL})
+            listaMapas.push({'titulo':'Mapa Principal','mapa':mapaJS_OL})
             
     
-            mapajs2 = createMapWithExistingView('mapaJS_div_2', [], [], [], []);
+            mapajs2 = createMapWithExistingView('mapaJS_div_2', mapajs);
 
             mapaJS_OL_2 = mapajs2.getMapImpl()
             mapaJS_OL_2.setTarget('mapaJS_div_2')
@@ -173,7 +399,7 @@
             var swipe = new ol.control.Swipe({ rightLayers: map2.getLayers().getArray(),  });
             /*/
             var clip = new ol.interaction.ClipMap({ radius: 150 });
-            var swipe = new ol.control.SwipeMap({ right: true  });
+            var swipe= new ol.control.SwipeMap({ right: true  });
             /**/
 
 
@@ -184,19 +410,99 @@
                 if (mode) {
                 currentMode = mode;
                 // Remove tools
-                mapaJS_OL_2.removeControl(swipe);
+                mapaJS_OL.removeControl(swipe);
                 mapaJS_OL_2.removeInteraction(clip);
+
+                mapaJS_OL.setTarget('mapaJS_div')
+                mapaJS_OL_2.setTarget('mapaJS_div_2')
+
                 // Set interactions
                 switch (mode) {
-                    case 'swipev':
-                    case 'swipeh': {
-                    mapaJS_OL_2.addControl(swipe);
-                    swipe.set('orientation', (mode==='swipev' ? 'vertical' : 'horizontal'));
-                    break;
+                    case 'view1': {
+                        var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
+                            for (const mapa of listaMapas) {
+                                if(mapa.titulo == valueMapaUnico){
+                                    mapa.mapa.setTarget('mapaJS_div')
+                                }else{
+                                    mapa.mapa.setTarget('mapaJS_div_2')
+                                }
+                            }
+                        break;
                     }
+                    case 'swipev': {
+                        mapaJS_OL.setTarget('mapaJS_div')
+                        mapaJS_OL_2.setTarget('mapaJS_div_2')
+                        mapaJS_OL.addControl(swipe);
+                        swipe.set('orientation', (mode==='swipeh' ? 'horizontal' : 'vertical'));
+                        swipe.set('right', true);
+                        break;
+                    }
+
+                    case 'swipeh': {
+                        mapaJS_OL.setTarget('mapaJS_div')
+                        mapaJS_OL_2.setTarget('mapaJS_div_2')
+                        mapaJS_OL.addControl(swipe);
+                        swipe.set('orientation', (mode==='swipev' ? 'vertical' : 'horizontal'));
+                        swipe.set('right', false);
+                        break;
+                    }
+
                     case 'clip': {
-                    mapaJS_OL_2.addInteraction(clip);
-                    break;
+                        mapaJS_OL_2.setTarget('mapaJS_div')
+                        mapaJS_OL.setTarget('mapaJS_div_2')
+                        mapaJS_OL_2.addInteraction(clip);
+                        break;
+                    }
+
+                    case 'settings': {
+                        var modal = document.getElementById("myModal");
+                        // Get the <span> element that closes the modal
+                        var span = document.getElementsByClassName("close")[0];
+                        modal.style.display = "block";
+                        span.onclick = function() {
+                            modal.style.display = "none";
+                        }
+
+                        valueMapaUnico = document.getElementById("selectorMapasUnico")
+                        if (valueMapaUnico.options.length == 0){
+
+                            var selectorMapas = document.getElementsByClassName("selectorMapasClase");
+                        
+                            for (const selector of selectorMapas) {
+                                // console.log(selector)
+                                // selector.innerHTML = "";
+
+                                for (const mapa of listaMapas) {
+                                    var opt = document.createElement('option');
+                                    opt.value = mapa.titulo;
+                                    opt.innerHTML = mapa.titulo;
+                                    selector.appendChild(opt);
+                                }
+                                
+                            }
+
+
+                        } 
+
+                        botonAceptar = document.getElementById("idAceptar");
+                        botonAceptar.onclick = function() {
+                            var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
+                            for (const mapa of listaMapas) {
+                                if(mapa.titulo == valueMapaUnico){
+                                    mapa.mapa.setTarget('mapaJS_div')
+                                }else{
+                                    mapa.mapa.setTarget('mapaJS_div_2')
+                                }
+                            }
+                            
+                        }
+                        // When the user clicks anywhere outside of the modal, close it
+                        window.onclick = function(event) {
+                            if (event.target == modal) {
+                                modal.style.display = "none";
+                            }
+                        }
+                        break;
                     }
                 }
                 // Update position
@@ -206,31 +512,67 @@
                 }
                 mapaJS_OL.updateSize();
                 mapaJS_OL_2.updateSize();
+               
             }
 
             // Check click and dispatch to map
-            mapaJS_OL_2.on('click', function(e) {
+            mapaJS_OL.on('click', function(e) {
                 if (/swipe/.test(currentMode)) {
-                if (!ol.extent.containsCoordinate(swipe.getRectangle(), e.pixel)) {
-                    // Simulate map1 selection
-                    e.map = map;
-                    e.stopPropagation();
-                    select2.getFeatures().clear();
-                    select1.handleEvent(e);
-                } else {
-                    select1.getFeatures().clear();
-                }
+                    if (!ol.extent.containsCoordinate(swipe.getRectangle(), e.pixel)) {
+                        // Simulate map1 selection
+                        e.map = map;
+                        e.stopPropagation();
+                        select2.getFeatures().clear();
+                        select1.handleEvent(e);
+                    } else {
+                        select1.getFeatures().clear();
+                    }
                 }
             });
 
 
 
             // Función crear mapa
-            function createMapWithExistingView(idDiv, capas, vista, controles, extensiones) {
+            function createMapWithExistingView(idDiv, mapajs) {
+                controlesAPI = []
+                for (const property in M.control) {
+                    controlesAPI.push(`${property}`.toLowerCase())
+                }
+                // console.log(controlesAPI)
+
+                controles = []
+                for (let i = 0; i < mapajs.getControls().map(a => a.name).length; i++) {
+                    name = mapajs.getControls()[i].name
+                    // console.log(name)
+                    // console.log(controlesAPI.includes(name))
+
+                    if (controlesAPI.includes(name)) {
+                        controles.push(name)
+                    }
+                } 
+
                 let mapObj = M.map({
                     container: idDiv,
-                    controls: ['backgroundlayers'],
+                    controls: controles,
+                    bbox:[mapajs.getBbox().x.min,mapajs.getBbox().y.min,mapajs.getBbox().x.max,mapajs.getBbox().y.max],
                 });
+
+                let mp_selectorCapa = new M.plugin.Layerswitcher({
+                    position: 'TR',
+                    collapsed: false,
+                    collapsible: true,
+                    https: true,
+                    http: true,
+                    tooltip: 'Selector de capa superpuesta',
+                    showCatalog: true,
+                    displayLabel: false,
+                    addLayers: true,
+                    statusLayers: true,
+                    modeSelectLayers: 'eyes', // opciones: 'eyes', 'radio'
+                    tools: ['transparency', 'legend', 'zoom', 'information', 'style', 'delete']
+                });
+                mapObj.addPlugin(mp_selectorCapa);
+                
                 return mapObj;
             }
 
