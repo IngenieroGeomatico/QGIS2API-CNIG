@@ -367,12 +367,12 @@
                 <td><i class="fg-screen-dub-o"></i></td>
                 <td>
                     <div class="grid-container">
-                        <p>Mapa izquierdo:</p>
-                        <select id="selectorMapasEspejoIzq" class="selectorMapasClase" name="Selector de mapa">
-
-                        </select>
                         <p>Mapa derecho:</p>
                         <select id="selectorMapasEspejoDer" class="selectorMapasClase" name="Selector de mapa">
+
+                        </select>
+                        <p>Mapa izquierdo:</p>
+                        <select id="selectorMapasEspejoIzq" class="selectorMapasClase" name="Selector de mapa">
 
                         </select>
                     </div>
@@ -382,12 +382,12 @@
                 <td><i class="fg-screen-split-h"></i></td>
                 <td>
                     <div class="grid-container">
-                        <p>Mapa izquierdo:</p>
-                        <select id="selectorMapasHCortinillaIzq" class="selectorMapasClase" name="Selector de mapa">
-
-                        </select>
                         <p>Mapa derecho:</p>
                         <select id="selectorMapasHCortinillaDer" class="selectorMapasClase" name="Selector de mapa">
+
+                        </select>
+                        <p>Mapa izquierdo:</p>
+                        <select id="selectorMapasHCortinillaIzq" class="selectorMapasClase" name="Selector de mapa">
 
                         </select>
                     </div>
@@ -552,8 +552,13 @@
         // Change mode
         var currentMode;
         function setMode(mode) {
-            document.getElementsByClassName("activeSVG")[0].classList.remove("activeSVG")
-            document.getElementById(mode).classList.add("activeSVG")
+            if( [ "addMap","settings","info" ].includes(mode) ){
+                
+            }else{
+                document.getElementsByClassName("activeSVG")[0].classList.remove("activeSVG")
+                document.getElementById(mode).classList.add("activeSVG")
+            }
+            
             if (mode) {
                 currentMode = mode;
                 // Remove tools
@@ -570,59 +575,29 @@
                 mapaJS_OL_2.setTarget('mapaJS_div_2')
 
                 // Set interactions
+                console.log(mode)
                 switch (mode) {
 
-                    case 'compare':{
-                        document.getElementById("compareMaps").className = mode;
-                        mapaJS_OL.setTarget('mapaJS_div')
-                        mapaJS_OL_2.setTarget('mapaJS_div_2')
-
-                        mapaJS_OL.updateSize();
-                        mapaJS_OL_2.updateSize();
-                        break;
-                    }
-
-                    case 'view1': {
-                        var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
-                        for (const mapa of listaMapas) {
-                            if (mapa.titulo == valueMapaUnico) {
-                                mapa.mapa.setTarget('mapaJS_div')
-                            } else {
-                                mapa.mapa.setTarget('mapaJS_div_2')
+                    case 'info': {
+                        var modal = document.getElementById("myModal");
+                        // Get the <span> element that closes the modal
+                        var span = document.getElementsByClassName("close")[0];
+                        modal.style.display = "block";
+                        span.onclick = function () {
+                            modal.style.display = "none";
+                        }
+                        window.onclick = function (event) {
+                            if (event.target == modal) {
+                                modal.style.display = "none";
                             }
                         }
                         break;
                     }
-
-                    case 'swipev': {
-                        mapaJS_OL.setTarget('mapaJS_div')
-                        mapaJS_OL_2.setTarget('mapaJS_div_2')
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                        mapaJS_OL.addControl(swipe);
-                        swipe.set('orientation', (mode === 'swipeh' ? 'horizontal' : 'vertical'));
-                        swipe.set('right', true);
-                        break;
-                    }
-
-                    case 'swipeh': {
-                        mapaJS_OL.setTarget('mapaJS_div')
-                        mapaJS_OL_2.setTarget('mapaJS_div_2')
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                        mapaJS_OL.addControl(swipe);
-                        swipe.set('orientation', (mode === 'swipev' ? 'vertical' : 'horizontal'));
-                        swipe.set('right', false);
-                        break;
-                    }
-
-                    case 'clip': {
-                        // mapaJS_OL_2.setTarget('mapaJS_div')
-                        // mapaJS_OL.setTarget('mapaJS_div_2')
-                        document.getElementById("mapaJS_div").style.zIndex = 0;
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                        mapaJS_OL_2.addInteraction(clip);
-                        break;
-                    }
-
+                    // Update position
+                    document.getElementById("compareMaps").className = mode;
+                    select1.getFeatures().clear();
+                    select2.getFeatures().clear();
+                    
                     case 'settings': {
                         Sidenav = document.getElementById("mySidenav")
                         oriSidenavWidth = Sidenav.style.width
@@ -670,8 +645,8 @@
                                         opt.selected = true
                                     }
                                     else{
-                                        if(selector.id == "selectorMapasEspejoDer"){
-                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasEspejoIzq").value
+                                        if(selector.id == "selectorMapasEspejoIzq"){
+                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasEspejoDer").value
 
                                             if(selectorMapasEspejoIzq == mapa.titulo){
                                                 opt.selected = false
@@ -682,8 +657,8 @@
                                             }
                                         }
 
-                                        else if(selector.id == "selectorMapasHCortinillaDer"){
-                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasHCortinillaIzq").value
+                                        else if(selector.id == "selectorMapasHCortinillaIzq"){
+                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasHCortinillaDer").value
 
                                             if(selectorMapasEspejoIzq == mapa.titulo){
                                                 opt.selected = false
@@ -742,35 +717,87 @@
                             }
 
                         }
-                        // When the user clicks anywhere outside of the modal, close it
-                        window.onclick = function (event) {
-                            if (event.target == modal) {
-                                modal.style.display = "none";
+
+                        setMode(document.getElementsByClassName("activeSVG")[0].id)
+                        mode = document.getElementsByClassName("activeSVG")[0].id
+                        break;
+                    }
+                    
+                    case 'compare':{
+                        document.getElementById("compareMaps").className = mode;
+                        mapaJS_OL.setTarget('mapaJS_div')
+                        mapaJS_OL_2.setTarget('mapaJS_div_2')
+
+                        mapaJS_OL.updateSize();
+                        mapaJS_OL_2.updateSize();
+                        break;
+                    }
+
+                    case 'view1': {
+                        var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
+                        for (const mapa of listaMapas) {
+                            if (mapa.titulo == valueMapaUnico) {
+                                mapa.mapa.setTarget('mapaJS_div')
+                            } else {
+                                mapa.mapa.setTarget('mapaJS_div_2')
                             }
                         }
                         break;
                     }
 
-                    case 'info': {
-                        var modal = document.getElementById("myModal");
-                        // Get the <span> element that closes the modal
-                        var span = document.getElementsByClassName("close")[0];
-                        modal.style.display = "block";
-                        span.onclick = function () {
-                            modal.style.display = "none";
-                        }
-                        window.onclick = function (event) {
-                            if (event.target == modal) {
-                                modal.style.display = "none";
-                            }
-                        }
+                    case 'swipev': {
+                        mapaJS_OL.setTarget('mapaJS_div')
+                        mapaJS_OL_2.setTarget('mapaJS_div_2')
+                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
+                        mapaJS_OL.addControl(swipe);
+                        swipe.set('orientation', (mode === 'swipeh' ? 'horizontal' : 'vertical'));
+                        swipe.set('right', true);
                         break;
                     }
-                    // Update position
-                    document.getElementById("compareMaps").className = mode;
-                    select1.getFeatures().clear();
-                    select2.getFeatures().clear();
-                
+
+                    case 'swipeh': {
+                        mapaJS_OL.setTarget('mapaJS_div')
+                        mapaJS_OL_2.setTarget('mapaJS_div_2')
+                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
+                        mapaJS_OL.addControl(swipe);
+                        swipe.set('orientation', (mode === 'swipev' ? 'vertical' : 'horizontal'));
+                        swipe.set('right', false);
+                        break;
+                    }
+
+                    case 'clip': {
+                        // mapaJS_OL_2.setTarget('mapaJS_div')
+                        // mapaJS_OL.setTarget('mapaJS_div_2')
+                        document.getElementById("mapaJS_div").style.zIndex = 0;
+                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
+                        mapaJS_OL_2.addInteraction(clip);
+                        break;
+                    }
+
+                    case 'addMap':{
+                        M.dialog.info(`
+                                <label for="fname">Nombre vista:</label><input type="text" id="nombreVistaID" name="fname"><br><br>
+                            `, 
+                            "Crear nueva vista"
+                        );
+                        buttonAceptar = document.getElementsByClassName("m-content")[0].querySelector("button")
+                        buttonAceptar.id="buttonModalID" 
+                        nombreMpapa = document.getElementById("nombreVistaID")
+                        nombreMpapa.onchange = function(){
+                            nombreMApavalue = nombreMpapa.value
+                        };
+                        
+                        document.getElementsByClassName("m-content")[0].querySelector("button").onclick = function () {
+                            // console.log(nombreMApavalue)
+                            mapajsn = createMapWithExistingView('mapaJS_div_2', mapajs);
+                            mapaJS_OL_n = mapajsn.getMapImpl()
+                            mapaJS_OL_n.setTarget('mapaJS_div_2')
+                            listaMapas.push({ 'titulo': nombreMApavalue, 'mapa': mapaJS_OL_n })
+                        }
+
+
+                    }
+                    
                 }
                 // Update position
                 document.getElementById("compareMaps").className = mode;
@@ -823,21 +850,16 @@
                 bbox: [mapajs.getBbox().x.min, mapajs.getBbox().y.min, mapajs.getBbox().x.max, mapajs.getBbox().y.max],
             });
 
-            let mp_selectorCapa = new M.plugin.Layerswitcher({
-                position: 'TR',
-                collapsed: false,
-                collapsible: true,
-                https: true,
-                http: true,
-                tooltip: 'Selector de capa superpuesta',
-                showCatalog: true,
-                displayLabel: false,
-                addLayers: true,
-                statusLayers: true,
-                modeSelectLayers: 'eyes', // opciones: 'eyes', 'radio'
-                tools: ['transparency', 'legend', 'zoom', 'information', 'style', 'delete']
-            });
-            mapObj.addPlugin(mp_selectorCapa);
+            extensiones = []
+            for (let i = 0; i < mapajs.getPlugins().map(a => a.name).length; i++) {
+                name = mapajs.getPlugins()[i].name
+
+                if (name == 'layerswitcher') {
+                    let mp_selectorCapa = new M.plugin.Layerswitcher( mapajs.getPlugins()[i].options);
+                    mapObj.addPlugin(mp_selectorCapa);
+                }
+            }
+
 
             return mapObj;
         }
