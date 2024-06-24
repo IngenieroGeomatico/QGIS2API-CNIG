@@ -226,6 +226,10 @@
             font-size: 36px;
             margin-left: 50px;
         }
+
+        .activeSVG{
+            color: orange
+        }
     </style>
 
     <!-- Ficheros javascript de la API -->
@@ -421,7 +425,12 @@
             </tr>
         </table>
 
-        <button id="idAceptar" class="aceptar">aceptar</button>
+        <div class="grid-container">
+            <p></p>
+            <button id="idAceptar" class="aceptar">aceptar</button>
+        </div>
+
+        
 
 
 
@@ -431,14 +440,14 @@
 
     <!-- div comparación -->
     <div class="tools">
-        <i class="fg-map-add" onclick="setMode('addMap')" title="Añadir mapa"></i>
-        <i class="fg-map-o" onclick="setMode('view1')" title="Mapa único"></i>
-        <i class="fg-screen-dub-o" onclick="setMode('compare')" title="Compare"></i>
-        <i class="fg-screen-split-h" onclick="setMode('swipev')" title="Swipe V"></i>
-        <i class="fg-screen-split-v" onclick="setMode('swipeh')" title="Swipe V"></i>
-        <i class="fg-screen-mag" onclick="setMode('clip')" title="Clip"></i>
-        <i class="fg-map-options-alt" onclick="setMode('settings')" title="configuración"></i>
-        <i class="fg-poi-info-o" onclick="setMode('info')" title="info"></i>
+        <i id="addMap" class="fg-map-add" onclick="setMode('addMap')" title="Añadir mapa"></i>
+        <i id="view1" class="fg-map-o activeSVG" onclick="setMode('view1')" title="Mapa único"></i>
+        <i id="compare" class="fg-screen-dub-o" onclick="setMode('compare')" title="Compare"></i>
+        <i id="swipev" class="fg-screen-split-h" onclick="setMode('swipev')" title="Swipe V"></i>
+        <i id="swipeh" class="fg-screen-split-v" onclick="setMode('swipeh')" title="Swipe V"></i>
+        <i id="clip" class="fg-screen-mag" onclick="setMode('clip')" title="Clip"></i>
+        <i id="settings" class="fg-map-options-alt" onclick="setMode('settings')" title="configuración"></i>
+        <i id="info" class="fg-poi-info-o" onclick="setMode('info')" title="info"></i>
     </div>
 
     <!-- Contenedor principal del mapa -->
@@ -543,6 +552,8 @@
         // Change mode
         var currentMode;
         function setMode(mode) {
+            document.getElementsByClassName("activeSVG")[0].classList.remove("activeSVG")
+            document.getElementById(mode).classList.add("activeSVG")
             if (mode) {
                 currentMode = mode;
                 // Remove tools
@@ -648,11 +659,67 @@
                             var selectorMapas = document.getElementsByClassName("selectorMapasClase");
 
                             for (const selector of selectorMapas) {
-                                // console.log(selector)
-                                // selector.innerHTML = "";
+
+                                // console.log(selector, selector.value)
 
                                 for (const mapa of listaMapas) {
                                     var opt = document.createElement('option');
+                                    if (!selector.value){
+                                        opt.selected = true
+                                    } else if (selector.value == mapa.titulo){
+                                        opt.selected = true
+                                    }
+                                    else{
+                                        if(selector.id == "selectorMapasEspejoDer"){
+                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasEspejoIzq").value
+
+                                            if(selectorMapasEspejoIzq == mapa.titulo){
+                                                opt.selected = false
+                                            } else if (!selector.value){
+                                                opt.selected = true
+                                            }else {
+                                                opt.selected = true
+                                            }
+                                        }
+
+                                        else if(selector.id == "selectorMapasHCortinillaDer"){
+                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasHCortinillaIzq").value
+
+                                            if(selectorMapasEspejoIzq == mapa.titulo){
+                                                opt.selected = false
+                                            } else if (!selector.value){
+                                                opt.selected = true
+                                            }else {
+                                                opt.selected = true
+                                            }
+                                        }
+
+                                        else if(selector.id == "selectorMapasVCortninillaDer"){
+                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasVCortinillaIzq").value
+
+                                            if(selectorMapasEspejoIzq == mapa.titulo){
+                                                opt.selected = false
+                                            } else if (!selector.value){
+                                                opt.selected = true
+                                            }else {
+                                                opt.selected = true
+                                            }
+                                        }
+
+
+                                        else if(selector.id == "selectorMapasCirculoCir"){
+                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasCirculoFondo").value
+
+                                            if(selectorMapasEspejoIzq == mapa.titulo){
+                                                opt.selected = false
+                                            } else if (!selector.value){
+                                                opt.selected = true
+                                            }else {
+                                                opt.selected = true
+                                            }
+                                        }
+                                    }
+                                    
                                     opt.value = mapa.titulo;
                                     opt.innerHTML = mapa.titulo;
                                     selector.appendChild(opt);
@@ -715,7 +782,7 @@
         }
         // Check click and dispatch to map
         mapaJS_OL.on('click', function (e) {
-            console.log(e)
+            // console.log(e)
             if (/swipe/.test(currentMode)) {
                 if (!ol.extent.containsCoordinate(swipe.getRectangle(), e.pixel)) {
                     // Simulate map1 selection
