@@ -11,6 +11,7 @@
     <!-- Estilo de la API -->
     <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign.ol.min.css">
 
+
     <style type="text/css" id="idStyle">
         html,
         body {
@@ -18,217 +19,6 @@
             padding: 0;
             height: 100%;
             overflow: hidden;
-        }
-
-
-
-        /* The Modal (background) */
-        .modal {
-            display: none;
-            /* Hidden by default */
-            position: fixed;
-            /* Stay in place */
-            z-index: 200;
-            /* Sit on top */
-            padding-top: 100px;
-            /* Location of the box */
-            left: 0;
-            top: 0;
-            width: 100%;
-            /* Full width */
-            height: 100%;
-            /* Full height */
-            overflow: auto;
-            /* Enable scroll if needed */
-            background-color: rgb(0, 0, 0);
-            /* Fallback color */
-            background-color: rgba(0, 0, 0, 0.4);
-            /* Black w/ opacity */
-        }
-
-        /* Modal Content */
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-height: 75vh;
-            overflow: scroll;
-        }
-
-        /* The Close Button */
-        .close {
-            color: #aaaaaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: #000;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        select {
-            margin-block: 5px;
-        }
-
-        td i {
-            font-size: 30px;
-        }
-
-        #tablaConfig {
-            font-family: Arial, Helvetica, sans-serif;
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        #tablaConfig td,
-        #tablaConfig th {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
-        #tablaConfig tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        #tablaConfig tr:hover {
-            background-color: #ddd;
-        }
-
-        #tablaConfig th {
-            padding-top: 12px;
-            padding-bottom: 12px;
-            text-align: left;
-            background-color: #f57105;
-            color: white;
-        }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: auto auto;
-        }
-
-        .aceptar {
-            background-color: #04AA6D;
-            /* Green */
-            border: none;
-            color: white;
-            padding: 12px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 50px;
-        }
-
-
-
-
-
-        .m-mapea-container {
-            background-image: none
-        }
-
-        .compareMaps {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            height: calc(100vh - 45px);
-
-        }
-
-        /* Compare 50% */
-        .compare #mapaJS_div {
-            left: 50%;
-            width: 50%;
-        }
-
-        .compare #mapaJS_div_2 {
-            /* left: 50%; */
-            width: 50%;
-        }
-
-
-        .tools {
-            text-align: center;
-            display: inline-block;
-            width: 100%;
-            height: 45px;
-            background: #eee;
-        }
-
-        .tools i {
-            font-size: 2em;
-            cursor: pointer;
-            display: inline-block;
-        }
-
-        #compareMaps .m-panel button {
-            background-color: #ff6600 !important
-        }
-
-        #compareMaps .m-background-group-btn.activeBaseLayerButton {
-            background-color: orange !important;
-        }
-
-        #compareMaps .m-panel section button {
-            background-color: transparent !important
-        }
-
-        .modal .m-content {
-            right: -50%;
-        }
-
-
-
-
-
-        .sidenav {
-            height: 100%;
-            width: 0;
-            position: fixed;
-            z-index: 100;
-            top: 0;
-            left: 0;
-            background-color: #ffffff;
-            overflow-x: hidden;
-            transition: 0.5s;
-            padding-top: 10px;
-
-        }
-
-        .sidenav a {
-            padding: 8px 8px 8px 32px;
-            text-decoration: none;
-            font-size: 25px;
-            color: #818181;
-            display: block;
-            transition: 0.3s;
-        }
-
-        .sidenav a:hover {
-            color: #f1f1f1;
-        }
-
-        .sidenav .closebtn {
-            position: absolute;
-            /* top: 0; */
-            right: 25px;
-            font-size: 36px;
-            margin-left: 50px;
-        }
-
-        .activeSVG{
-            color: orange
         }
     </style>
 
@@ -238,7 +28,6 @@
     <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration.js"></script>
 
     <!-- Importación de extensiones -->
-
     <link href="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher.ol.min.css" rel="stylesheet" />
     <script type="text/javascript"
         src="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher.ol.min.js"></script>
@@ -248,6 +37,11 @@
     <link href="https://viglino.github.io/font-gis/css/font-gis.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://viglino.github.io/ol-ext/dist/ol-ext.css" />
     <script type="text/javascript" src="https://viglino.github.io/ol-ext/dist/ol-ext.js"></script>
+
+    
+    <!-- Extensiones personalizadas -->
+    <link type="text/css" rel="stylesheet" href="./css/comparadorMapas.css">
+    
 
 
     <!-- URLS -->
@@ -265,13 +59,13 @@
             [] quitar botón configuración y añadir "sidenav" que al abrirlo aparezcan las opciones de configuración del modo selecionado 
                 -> https://www.w3schools.com/howto/howto_js_sidenav.asp
             [] https://administracionelectronica.gob.es/pae_Home/pae_Estrategias/pae_Accesibilidad/pae_Observatorio_de_Accesibilidad.html
-
-
-        -->
+    -->
 
 </head>
 
 <body>
+
+    
 
     <!-- The Modal -->
     <div id="myModal" class="modal">
@@ -281,7 +75,7 @@
             <span class="close">&times;</span>
             <h3>Configuración de comparación</h3>
 
-            <table id="tablaConfig">
+            <table id="tablaModal">
                 <tr>
                     <th>Botón</th>
                     <th>Información</th>
@@ -352,7 +146,7 @@
                 <th>Botón</th>
                 <th>Configuración</th>
             </tr>
-            <tr>
+            <tr id="table_view1" class="activeTable">
                 <td><i class="fg-map-o"></i></td>
                 <td>
                     <div class="grid-container">
@@ -363,7 +157,7 @@
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr id="table_compare">
                 <td><i class="fg-screen-dub-o"></i></td>
                 <td>
                     <div class="grid-container">
@@ -378,7 +172,7 @@
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr id="table_swipev">
                 <td><i class="fg-screen-split-h"></i></td>
                 <td>
                     <div class="grid-container">
@@ -393,7 +187,7 @@
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr id="table_swipeh">
                 <td><i class="fg-screen-split-v"></i></td>
                 <td>
                     <div class="grid-container">
@@ -408,7 +202,7 @@
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr id="table_clip">
                 <td><i class="fg-screen-mag"></i></td>
                 <td>
                     <div class="grid-container">
@@ -466,407 +260,15 @@
 
     <script type="text/javascript">
 
-        // Configuración del mapa
-        let zoomInicial = 5
-        let longLatInicial = [-3, 40]
-        const zoom_p = M.config.MAP_VIEWER_ZOOM || zoomInicial;
-        const center_p = M.config.MAP_VIEWER_CENTER || ol.proj.fromLonLat(longLatInicial);
-
-        M.proxy(false) // Necesario para ejecutar el visualizador en local.
-        const mapajs = M.map({
-            container: 'mapaJS_div',
-            controls: ['backgroundlayers'],
-            bbox: [-7711689.624538593, 2583849.10320135, 6722971.85545639, 6327793.722126087]
-        });
-
-        const layers_p = M.config.MAP_VIEWER_LAYERS || [];
-        mapajs.addLayers(layers_p)
-
-
-        mapajs.addTMS(
-            new M.layer.TMS({
-                url: 'https://tms-pnoa-ma.idee.es/1.0.0/pnoa-ma/{z}/{x}/{-y}.jpeg',
-                name: 'PNOA',
-                visibility: true,
-                legend: 'PNOA',
-            })
-        );
-        mapajs.getLayers().filter((layer) => layer.legend == "PNOA")[0].setZIndex(100)
-
-
-        let mp_selectorCapa = new M.plugin.Layerswitcher({
-            position: 'TR',
-            collapsed: false,
-            collapsible: true,
-            https: true,
-            http: true,
-            tooltip: 'Selector de capa superpuesta',
-            showCatalog: true,
-            displayLabel: false,
-            addLayers: true,
-            statusLayers: true,
-            modeSelectLayers: 'eyes', // opciones: 'eyes', 'radio'
-            tools: ['transparency', 'legend', 'zoom', 'information', 'style', 'delete']
-        });
-        mapajs.addPlugin(mp_selectorCapa);
-
-
-        // Comparación
-        listaMapas = []
-        mapaJS_OL = mapajs.getMapImpl()
-
-        listaMapas.push({ 'titulo': 'Mapa Principal', 'mapa': mapaJS_OL })
-
-
-        mapajs2 = createMapWithExistingView('mapaJS_div_2', mapajs);
-
-        mapaJS_OL_2 = mapajs2.getMapImpl()
-        mapaJS_OL_2.setTarget('mapaJS_div_2')
-        listaMapas.push({ 'titulo': 'Mapa 2', 'mapa': mapaJS_OL_2 })
-
-
-
-        // Select interaction
-        var select1 = new ol.interaction.Select({ condition: ol.events.condition.click });
-        mapaJS_OL.addInteraction(select1);
-        var select2 = new ol.interaction.Select({ condition: ol.events.condition.click });
-        mapaJS_OL_2.addInteraction(select2);
-
-
-        // Synchronize the maps 
-        mapaJS_OL.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL_2] }));
-        mapaJS_OL_2.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL] }));
-
-
-        // Tools
-        /* Use layer clipping * /
-        var clip = new ol.interaction.Clip({ radius: 150, layers: map2.getLayers().getArray() });
-        var swipe = new ol.control.Swipe({ rightLayers: map2.getLayers().getArray(),  });
-        /*/
-        var clip = new ol.interaction.ClipMap({ radius: 150 });
-        var swipe = new ol.control.SwipeMap({ right: true });
-        /**/
-
-
-
-        // Change mode
-        var currentMode;
-        function setMode(mode) {
-            if( [ "addMap","settings","info" ].includes(mode) ){
-                
-            }else{
-                document.getElementsByClassName("activeSVG")[0].classList.remove("activeSVG")
-                document.getElementById(mode).classList.add("activeSVG")
-            }
-            
-            if (mode) {
-                currentMode = mode;
-                // Remove tools
-                mapaJS_OL.removeControl(swipe);
-                mapaJS_OL.removeInteraction(clip);
-                mapaJS_OL_2.removeInteraction(clip);
-                mapaJS_OL_2.removeControl(swipe);
-
-                document.getElementById("mapaJS_div").style.zIndex = 1;
-                document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "";
-                
-
-                mapaJS_OL.setTarget('mapaJS_div')
-                mapaJS_OL_2.setTarget('mapaJS_div_2')
-
-                // Set interactions
-                console.log(mode)
-                switch (mode) {
-
-                    case 'info': {
-                        var modal = document.getElementById("myModal");
-                        // Get the <span> element that closes the modal
-                        var span = document.getElementsByClassName("close")[0];
-                        modal.style.display = "block";
-                        span.onclick = function () {
-                            modal.style.display = "none";
-                        }
-                        window.onclick = function (event) {
-                            if (event.target == modal) {
-                                modal.style.display = "none";
-                            }
-                        }
-                        break;
-                    }
-                    // Update position
-                    document.getElementById("compareMaps").className = mode;
-                    select1.getFeatures().clear();
-                    select2.getFeatures().clear();
-                    
-                    case 'settings': {
-                        Sidenav = document.getElementById("mySidenav")
-                        oriSidenavWidth = Sidenav.style.width
-                        isClose = (oriSidenavWidth == '0px' || oriSidenavWidth == "") ? true : false;
-
-                        if (isClose) {
-                            Sidenav.style.width = "350px";
-                            Sidenav.style.borderStyle = "solid";
-                            Sidenav.style.borderColor = "#ff6600 ";
-                            isClose = false
-                            oriClose = true
-
-                        }
-                        else {
-                            Sidenav.style.width = "0";
-                            Sidenav.style.borderStyle = "None";
-                            isClose = true
-                            oriClose = false
-                        }
-
-                        var span = document.getElementsByClassName("closebtn")[0];
-                        span.onclick = function () {
-                            Sidenav.style.width = "0";
-                            Sidenav.style.borderStyle = "None";
-                            isClose = true
-                            oriClose = false
-                        }
-
-
-                        valueMapaUnico = document.getElementById("selectorMapasUnico")
-
-                        if (listaMapas.length != valueMapaUnico.options.length) {
-
-                            var selectorMapas = document.getElementsByClassName("selectorMapasClase");
-
-                            for (const selector of selectorMapas) {
-
-                                // console.log(selector, selector.value)
-
-                                for (const mapa of listaMapas) {
-                                    var opt = document.createElement('option');
-                                    if (!selector.value){
-                                        opt.selected = true
-                                    } else if (selector.value == mapa.titulo){
-                                        opt.selected = true
-                                    }
-                                    else{
-                                        if(selector.id == "selectorMapasEspejoIzq"){
-                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasEspejoDer").value
-
-                                            if(selectorMapasEspejoIzq == mapa.titulo){
-                                                opt.selected = false
-                                            } else if (!selector.value){
-                                                opt.selected = true
-                                            }else {
-                                                opt.selected = true
-                                            }
-                                        }
-
-                                        else if(selector.id == "selectorMapasHCortinillaIzq"){
-                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasHCortinillaDer").value
-
-                                            if(selectorMapasEspejoIzq == mapa.titulo){
-                                                opt.selected = false
-                                            } else if (!selector.value){
-                                                opt.selected = true
-                                            }else {
-                                                opt.selected = true
-                                            }
-                                        }
-
-                                        else if(selector.id == "selectorMapasVCortninillaDer"){
-                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasVCortinillaIzq").value
-
-                                            if(selectorMapasEspejoIzq == mapa.titulo){
-                                                opt.selected = false
-                                            } else if (!selector.value){
-                                                opt.selected = true
-                                            }else {
-                                                opt.selected = true
-                                            }
-                                        }
-
-
-                                        else if(selector.id == "selectorMapasCirculoCir"){
-                                            selectorMapasEspejoIzq = document.getElementById("selectorMapasCirculoFondo").value
-
-                                            if(selectorMapasEspejoIzq == mapa.titulo){
-                                                opt.selected = false
-                                            } else if (!selector.value){
-                                                opt.selected = true
-                                            }else {
-                                                opt.selected = true
-                                            }
-                                        }
-                                    }
-                                    
-                                    opt.value = mapa.titulo;
-                                    opt.innerHTML = mapa.titulo;
-                                    selector.appendChild(opt);
-                                }
-
-                            }
-
-
-                        }
-
-                        botonAceptar = document.getElementById("idAceptar");
-                        botonAceptar.onclick = function () {
-                            var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
-                            for (const mapa of listaMapas) {
-                                if (mapa.titulo == valueMapaUnico) {
-                                    mapa.mapa.setTarget('mapaJS_div')
-                                } else {
-                                    mapa.mapa.setTarget('mapaJS_div_2')
-                                }
-                            }
-
-                        }
-
-                        setMode(document.getElementsByClassName("activeSVG")[0].id)
-                        mode = document.getElementsByClassName("activeSVG")[0].id
-                        break;
-                    }
-                    
-                    case 'compare':{
-                        document.getElementById("compareMaps").className = mode;
-                        mapaJS_OL.setTarget('mapaJS_div')
-                        mapaJS_OL_2.setTarget('mapaJS_div_2')
-
-                        mapaJS_OL.updateSize();
-                        mapaJS_OL_2.updateSize();
-                        break;
-                    }
-
-                    case 'view1': {
-                        var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
-                        for (const mapa of listaMapas) {
-                            if (mapa.titulo == valueMapaUnico) {
-                                mapa.mapa.setTarget('mapaJS_div')
-                            } else {
-                                mapa.mapa.setTarget('mapaJS_div_2')
-                            }
-                        }
-                        break;
-                    }
-
-                    case 'swipev': {
-                        mapaJS_OL.setTarget('mapaJS_div')
-                        mapaJS_OL_2.setTarget('mapaJS_div_2')
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                        mapaJS_OL.addControl(swipe);
-                        swipe.set('orientation', (mode === 'swipeh' ? 'horizontal' : 'vertical'));
-                        swipe.set('right', true);
-                        break;
-                    }
-
-                    case 'swipeh': {
-                        mapaJS_OL.setTarget('mapaJS_div')
-                        mapaJS_OL_2.setTarget('mapaJS_div_2')
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                        mapaJS_OL.addControl(swipe);
-                        swipe.set('orientation', (mode === 'swipev' ? 'vertical' : 'horizontal'));
-                        swipe.set('right', false);
-                        break;
-                    }
-
-                    case 'clip': {
-                        // mapaJS_OL_2.setTarget('mapaJS_div')
-                        // mapaJS_OL.setTarget('mapaJS_div_2')
-                        document.getElementById("mapaJS_div").style.zIndex = 0;
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                        mapaJS_OL_2.addInteraction(clip);
-                        break;
-                    }
-
-                    case 'addMap':{
-                        M.dialog.info(`
-                                <label for="fname">Nombre vista:</label><input type="text" id="nombreVistaID" name="fname"><br><br>
-                            `, 
-                            "Crear nueva vista"
-                        );
-                        buttonAceptar = document.getElementsByClassName("m-content")[0].querySelector("button")
-                        buttonAceptar.id="buttonModalID" 
-                        nombreMpapa = document.getElementById("nombreVistaID")
-                        nombreMpapa.onchange = function(){
-                            nombreMApavalue = nombreMpapa.value
-                        };
-                        
-                        document.getElementsByClassName("m-content")[0].querySelector("button").onclick = function () {
-                            // console.log(nombreMApavalue)
-                            mapajsn = createMapWithExistingView('mapaJS_div_2', mapajs);
-                            mapaJS_OL_n = mapajsn.getMapImpl()
-                            mapaJS_OL_n.setTarget('mapaJS_div_2')
-                            listaMapas.push({ 'titulo': nombreMApavalue, 'mapa': mapaJS_OL_n })
-                        }
-
-
-                    }
-                    
-                }
-                // Update position
-                document.getElementById("compareMaps").className = mode;
-
-            }
-            mapaJS_OL.updateSize();
-            mapaJS_OL_2.updateSize();
-               
-        }
-        // Check click and dispatch to map
-        mapaJS_OL.on('click', function (e) {
-            // console.log(e)
-            if (/swipe/.test(currentMode)) {
-                if (!ol.extent.containsCoordinate(swipe.getRectangle(), e.pixel)) {
-                    // Simulate map1 selection
-                    e.map = map;
-                    e.stopPropagation();
-                    select2.getFeatures().clear();
-                    select1.handleEvent(e);
-                } else {
-                    select1.getFeatures().clear();
-                }
-            }
-        });
-
-
-
-        // Función crear mapa
-        function createMapWithExistingView(idDiv, mapajs) {
-            controlesAPI = []
-            for (const property in M.control) {
-                controlesAPI.push(`${property}`.toLowerCase())
-            }
-            // console.log(controlesAPI)
-
-            controles = []
-            for (let i = 0; i < mapajs.getControls().map(a => a.name).length; i++) {
-                name = mapajs.getControls()[i].name
-                // console.log(name)
-                // console.log(controlesAPI.includes(name))
-
-                if (controlesAPI.includes(name)) {
-                    controles.push(name)
-                }
-            }
-
-            let mapObj = M.map({
-                container: idDiv,
-                controls: controles,
-                bbox: [mapajs.getBbox().x.min, mapajs.getBbox().y.min, mapajs.getBbox().x.max, mapajs.getBbox().y.max],
-            });
-
-            extensiones = []
-            for (let i = 0; i < mapajs.getPlugins().map(a => a.name).length; i++) {
-                name = mapajs.getPlugins()[i].name
-
-                if (name == 'layerswitcher') {
-                    let mp_selectorCapa = new M.plugin.Layerswitcher( mapajs.getPlugins()[i].options);
-                    mapObj.addPlugin(mp_selectorCapa);
-                }
-            }
-
-
-            return mapObj;
-        }
-
-
+       
 
     </script>
+
+
+<!-- Importación visualizador -->
+<script type="text/javascript" src="./js/visualizador.js"></script>
+
+<script type="text/javascript" src="./js/comparadorMapas.js"></script>
 </body>
 
 </html>
