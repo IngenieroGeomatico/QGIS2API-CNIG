@@ -41,6 +41,7 @@ var currentMode;
 function setMode(mode) {
     if (["addMap", "settings", "info"].includes(mode)) {
         document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "";
+        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "";
     } else {
         document.getElementsByClassName("activeSVG")[0].classList.remove("activeSVG")
         document.getElementById(mode).classList.add("activeSVG")
@@ -64,6 +65,7 @@ function setMode(mode) {
 
         document.getElementById("mapaJS_div").style.zIndex = 1;
         document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "";
+        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "";
 
         mapaJS_OL.setTarget('mapaJS_div')
         mapaJS_OL_2.setTarget('mapaJS_div_2')
@@ -218,6 +220,16 @@ function setMode(mode) {
                         }
                     }
                     else if (currentMode == 'compare') {
+                        var mapaDerechoPrincipal = document.getElementById("selectorMapasEspejoDer").value;
+                        var mapaIzquierdo = document.getElementById("selectorMapasEspejoIzq").value;
+
+                        for (const mapa of listaMapas) {
+                            if (mapa.titulo == mapaDerechoPrincipal) {
+                                mapa.mapa.setTarget('mapaJS_div')
+                            } else if (mapa.titulo == mapaIzquierdo) {
+                                mapa.mapa.setTarget('mapaJS_div_2')
+                            }
+                        }
 
                     }
                     else if (currentMode == 'swipev') {
@@ -259,7 +271,23 @@ function setMode(mode) {
 
                     }
                     else if (currentMode == 'clip') {
+                        var mapaPrincipalFondo = document.getElementById("selectorMapasCirculoFondo").value;
+                        var mapaCirculo = document.getElementById("selectorMapasCirculoCir").value;
 
+                        for (const mapa of listaMapas) {
+                            if (mapa.titulo == mapaPrincipalFondo) {
+                                mapa.mapa.setTarget('mapaJS_div')
+                                
+                            } else if (mapa.titulo == mapaCirculo) {
+                                mapa.mapa.setTarget('mapaJS_div_2')
+                                mapa.mapa.addInteraction(clip);
+                            }
+                            mapa.mapa.updateSize();
+                        }
+
+                        document.getElementById("mapaJS_div").style.zIndex = 0;
+                        document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "absolute";
+                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "";
                     }
 
                    
@@ -273,8 +301,16 @@ function setMode(mode) {
 
             case 'compare': {
                 document.getElementById("compareMaps").className = mode;
-                mapaJS_OL.setTarget('mapaJS_div')
-                mapaJS_OL_2.setTarget('mapaJS_div_2')
+                var mapaDerechoPrincipal = document.getElementById("selectorMapasEspejoDer").value;
+                var mapaIzquierdo = document.getElementById("selectorMapasEspejoIzq").value;
+
+                for (const mapa of listaMapas) {
+                    if (mapa.titulo == mapaDerechoPrincipal) {
+                        mapa.mapa.setTarget('mapaJS_div')
+                    } else if (mapa.titulo == mapaIzquierdo) {
+                        mapa.mapa.setTarget('mapaJS_div_2')
+                    }
+                }
 
                 mapaJS_OL.updateSize();
                 mapaJS_OL_2.updateSize();
@@ -358,9 +394,28 @@ function setMode(mode) {
             case 'clip': {
                 // mapaJS_OL_2.setTarget('mapaJS_div')
                 // mapaJS_OL.setTarget('mapaJS_div_2')
+                var mapaPrincipalFondo = document.getElementById("selectorMapasCirculoFondo").value;
+                var mapaCirculo = document.getElementById("selectorMapasCirculoCir").value;
+
+                if(!mapaPrincipalFondo){
+                    listaMapas[0].mapa.setTarget('mapaJS_div')
+                    listaMapas[1].mapa.setTarget('mapaJS_div_2')
+                    listaMapas[1].mapa.addInteraction(clip)
+                } else{
+                    
+                    for (const mapa of listaMapas) {
+                        if (mapa.titulo == mapaPrincipalFondo) {
+                            mapa.mapa.setTarget('mapaJS_div')
+                        } else if (mapa.titulo == mapaCirculo) {
+                            mapa.mapa.setTarget('mapaJS_div_2')
+                            mapa.mapa.addInteraction(clip);
+                        }
+                    }
+                }
+                
                 document.getElementById("mapaJS_div").style.zIndex = 0;
-                document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                mapaJS_OL_2.addInteraction(clip);
+                document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "absolute";
+                document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "";
                 break;
             }
 
