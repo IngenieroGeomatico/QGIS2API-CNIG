@@ -21,6 +21,8 @@ mapaJS_OL_2.addInteraction(select2);
 
 
 // Synchronize the maps 
+// TODO: Hay que modificar esto para que coja cada uno de los mapas del selector y aplicarle la sincronía
+
 mapaJS_OL.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL_2] }));
 mapaJS_OL_2.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL] }));
 
@@ -434,10 +436,11 @@ function setMode(mode) {
 
                 document.getElementsByClassName("m-content")[0].querySelector("button").onclick = function () {
                     // console.log(nombreMApavalue)
-                    mapajsn = createMapWithExistingView('mapaJS_div_2', mapajs);
-                    mapaJS_OL_n = mapajsn.getMapImpl()
-                    mapaJS_OL_n.setTarget('mapaJS_div_2')
-                    listaMapas.push({ 'titulo': nombreMApavalue, 'mapa': mapaJS_OL_n })
+                    nMapa = listaMapas.length +1
+                    window['mapajs'+ nMapa] = createMapWithExistingView('mapaJS_div_2', mapajs);
+                    window['mapaJS_OL_'+ nMapa] = window['mapajs'+ nMapa].getMapImpl()
+                    window['mapaJS_OL_'+ nMapa].setTarget('mapaJS_div_2')
+                    listaMapas.push({ 'titulo': nombreMApavalue, 'mapa': window['mapaJS_OL_'+ nMapa]})
                 }
 
 
@@ -448,8 +451,12 @@ function setMode(mode) {
         document.getElementById("compareMaps").className = mode;
 
     }
-    mapaJS_OL.updateSize();
-    mapaJS_OL_2.updateSize();
+
+    for (const mapa of listaMapas) {
+        mapa.mapa.updateSize();
+    }
+    // mapaJS_OL.updateSize();
+    // mapaJS_OL_2.updateSize();
 
 }
 // Check click and dispatch to map
