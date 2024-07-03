@@ -21,20 +21,26 @@ mapaJS_OL_2.addInteraction(select2);
 
 
 // Synchronize the maps 
-// TODO: Hay que modificar esto para que coja cada uno de los mapas del selector y aplicarle la sincronía
+// mapaJS_OL.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL_2] }));
+// mapaJS_OL_2.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL] }));
 
-mapaJS_OL.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL_2] }));
-mapaJS_OL_2.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL] }));
+var Synchronize_1 = new ol.interaction.Synchronize({ maps: [mapaJS_OL_2] })
+var Synchronize_2 = new ol.interaction.Synchronize({ maps: [mapaJS_OL] })
+
+SynchronizeList=[Synchronize_1,Synchronize_2]
+
+mapaJS_OL.addInteraction(Synchronize_1)
+mapaJS_OL_2.addInteraction(Synchronize_2)
 
 
 // Tools
-/* Use layer clipping * /
-var clip = new ol.interaction.Clip({ radius: 150, layers: map2.getLayers().getArray() });
-var swipe = new ol.control.Swipe({ rightLayers: map2.getLayers().getArray(),  });
+/* * /
 /*/
 var clip = new ol.interaction.ClipMap({ radius: 150 });
 var swipe = new ol.control.SwipeMap({ right: true });
 /**/
+
+
 
 
 
@@ -91,10 +97,6 @@ function setMode(mode) {
                 }
                 break;
             }
-                // Update position
-                document.getElementById("compareMaps").className = mode;
-                select1.getFeatures().clear();
-                select2.getFeatures().clear();
 
             case 'settings': {
                 Sidenav = document.getElementById("mySidenav")
@@ -129,295 +131,77 @@ function setMode(mode) {
 
                 if (listaMapas.length != valueMapaUnico.options.length) {
 
-                    var selectorMapas = document.getElementsByClassName("selectorMapasClase");
-
-                    for (const selector of selectorMapas) {
-
-                        // console.log(selector, selector.value)
-
-                        for (const mapa of listaMapas) {
-                            var opt = document.createElement('option');
-                            if (!selector.value) {
-                                opt.selected = true
-                            } else if (selector.value == mapa.titulo) {
-                                opt.selected = true
-                            }
-                            else {
-                                if (selector.id == "selectorMapasEspejoIzq") {
-                                    selectorMapasEspejoIzq = document.getElementById("selectorMapasEspejoDer").value
-
-                                    if (selectorMapasEspejoIzq == mapa.titulo) {
-                                        opt.selected = false
-                                    } else if (!selector.value) {
-                                        opt.selected = true
-                                    } else {
-                                        opt.selected = true
-                                    }
-                                }
-
-                                else if (selector.id == "selectorMapasHCortinillaIzq") {
-                                    selectorMapasEspejoIzq = document.getElementById("selectorMapasHCortinillaDer").value
-
-                                    if (selectorMapasEspejoIzq == mapa.titulo) {
-                                        opt.selected = false
-                                    } else if (!selector.value) {
-                                        opt.selected = true
-                                    } else {
-                                        opt.selected = true
-                                    }
-                                }
-
-                                else if (selector.id == "selectorMapasVCortninillaDer") {
-                                    selectorMapasEspejoIzq = document.getElementById("selectorMapasVCortinillaIzq").value
-
-                                    if (selectorMapasEspejoIzq == mapa.titulo) {
-                                        opt.selected = false
-                                    } else if (!selector.value) {
-                                        opt.selected = true
-                                    } else {
-                                        opt.selected = true
-                                    }
-                                }
-
-
-                                else if (selector.id == "selectorMapasCirculoCir") {
-                                    selectorMapasEspejoIzq = document.getElementById("selectorMapasCirculoFondo").value
-
-                                    if (selectorMapasEspejoIzq == mapa.titulo) {
-                                        opt.selected = false
-                                    } else if (!selector.value) {
-                                        opt.selected = true
-                                    } else {
-                                        opt.selected = true
-                                    }
-                                }
-                            }
-
-                            opt.value = mapa.titulo;
-                            opt.innerHTML = mapa.titulo;
-                            selector.appendChild(opt);
-                        }
-
-                    }
-
+                    selectionOptionsFunction()  
 
                 }
 
                 botonAceptar = document.getElementById("idAceptar");
                 botonAceptar.onclick = function () {
                     // console.log('currentMode : ',currentMode)
+                    // console.log('mode : ',mode)
                     for (const mapa of listaMapas) {
                         mapa.mapa.removeControl(swipe);
                         mapa.mapa.removeInteraction(clip);
                     }
 
+                    if(currentMode == 'addMap'){
+                        currentMode = mode
+                    }
+
                     if(currentMode == 'view1'){
-                        var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
-                        for (const mapa of listaMapas) {
-                            if (mapa.titulo == valueMapaUnico) {
-                                mapa.mapa.setTarget('mapaJS_div')
-                            } else {
-                                mapa.mapa.setTarget('mapaJS_div_2')
-                            }
-                        }
+                        view1Function() 
                     }
+
                     else if (currentMode == 'compare') {
-                        var mapaDerechoPrincipal = document.getElementById("selectorMapasEspejoDer").value;
-                        var mapaIzquierdo = document.getElementById("selectorMapasEspejoIzq").value;
-
-                        for (const mapa of listaMapas) {
-                            if (mapa.titulo == mapaDerechoPrincipal) {
-                                mapa.mapa.setTarget('mapaJS_div')
-                            } else if (mapa.titulo == mapaIzquierdo) {
-                                mapa.mapa.setTarget('mapaJS_div_2')
-                            }
-                        }
+                        document.getElementById("compareMaps").className = mode;
+                        compareFunction() 
 
                     }
+
                     else if (currentMode == 'swipev') {
-                        var mapaDerechoPrincipal = document.getElementById("selectorMapasHCortinillaDer").value;
-                        var mapaIzquierdo = document.getElementById("selectorMapasHCortinillaIzq").value;
-
-                        for (const mapa of listaMapas) {
-                            if (mapa.titulo == mapaDerechoPrincipal) {
-                                mapa.mapa.setTarget('mapaJS_div')
-                                mapa.mapa.addControl(swipe)
-                            } else if (mapa.titulo == mapaIzquierdo) {
-                                mapa.mapa.setTarget('mapaJS_div_2')
-                            }
-                        }
-
-                        document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "";
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                        swipe.set('orientation', (currentMode === 'swipeh' ? 'horizontal' : 'vertical'));
-                        swipe.set('right', true);
+                        swipeVFunction(mode) 
 
                     }
+
                     else if (currentMode == 'swipeh') {
-                        var mapaDerechoPrincipal = document.getElementById("selectorMapasVCortinillaIzq").value;
-                        var mapaIzquierdo = document.getElementById("selectorMapasVCortninillaDer").value;
-
-                        for (const mapa of listaMapas) {
-                            if (mapa.titulo == mapaDerechoPrincipal) {
-                                mapa.mapa.setTarget('mapaJS_div')
-                                mapa.mapa.addControl(swipe)
-                            } else if (mapa.titulo == mapaIzquierdo) {
-                                mapa.mapa.setTarget('mapaJS_div_2')
-                            }
-                        }
-
-                        document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "";
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                        swipe.set('orientation', (currentMode === 'swipev' ? 'vertical' : 'horizontal'));
-                        swipe.set('right', false);
+                        swipeHFunction(mode) 
 
                     }
+
                     else if (currentMode == 'clip') {
-                        var mapaPrincipalFondo = document.getElementById("selectorMapasCirculoFondo").value;
-                        var mapaCirculo = document.getElementById("selectorMapasCirculoCir").value;
-
-                        for (const mapa of listaMapas) {
-                            if (mapa.titulo == mapaPrincipalFondo) {
-                                mapa.mapa.setTarget('mapaJS_div')
-                                
-                            } else if (mapa.titulo == mapaCirculo) {
-                                mapa.mapa.setTarget('mapaJS_div_2')
-                                mapa.mapa.addInteraction(clip);
-                            }
-                            mapa.mapa.updateSize();
-                        }
-
-                        document.getElementById("mapaJS_div").style.zIndex = 0;
-                        document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "absolute";
-                        document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "";
+                        clipFunction()
                     }
-
-                   
 
                 }
 
-                setMode(document.getElementsByClassName("activeSVG")[0].id)
                 mode = document.getElementsByClassName("activeSVG")[0].id
+                setMode(mode)
                 break;
             }
 
             case 'compare': {
                 document.getElementById("compareMaps").className = mode;
-                var mapaDerechoPrincipal = document.getElementById("selectorMapasEspejoDer").value;
-                var mapaIzquierdo = document.getElementById("selectorMapasEspejoIzq").value;
-
-                for (const mapa of listaMapas) {
-                    if (mapa.titulo == mapaDerechoPrincipal) {
-                        mapa.mapa.setTarget('mapaJS_div')
-                    } else if (mapa.titulo == mapaIzquierdo) {
-                        mapa.mapa.setTarget('mapaJS_div_2')
-                    }
-                }
-
-                mapaJS_OL.updateSize();
-                mapaJS_OL_2.updateSize();
+                compareFunction() 
                 break;
             }
 
             case 'view1': {
-                var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
-                if(!valueMapaUnico){
-                    listaMapas[0].mapa.setTarget('mapaJS_div')
-                } else {
-                    for (const mapa of listaMapas) {
-                        if (mapa.titulo == valueMapaUnico) {
-                            mapa.mapa.setTarget('mapaJS_div')
-                        } else {
-                            mapa.mapa.setTarget('mapaJS_div_2')
-                        }
-                    }
-                }
-                
+                view1Function() 
                 break;
             }
 
             case 'swipev': {
-
-                var mapaDerechoPrincipal = document.getElementById("selectorMapasHCortinillaDer").value;
-                var mapaIzquierdo = document.getElementById("selectorMapasHCortinillaIzq").value;
-
-                // console.log('swipev:  ',!mapaDerechoPrincipal,mapaDerechoPrincipal)
-                if(!mapaDerechoPrincipal){
-                    listaMapas[0].mapa.setTarget('mapaJS_div')
-                    listaMapas[0].mapa.addControl(swipe)
-                    listaMapas[1].mapa.setTarget('mapaJS_div_2')
-                }
-                else {
-                    for (const mapa of listaMapas) {
-                        if (mapa.titulo == mapaDerechoPrincipal) {
-                            mapa.mapa.setTarget('mapaJS_div')
-                            mapa.mapa.addControl(swipe)
-                        } else if (mapa.titulo == mapaIzquierdo) {
-                            mapa.mapa.setTarget('mapaJS_div_2')
-                        }
-                    }
-    
-                }
-
-                document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                swipe.set('orientation', (mode === 'swipeh' ? 'horizontal' : 'vertical'));
-                swipe.set('right', true);
+                swipeVFunction(mode) 
                 break;
             }
 
             case 'swipeh': {
-                var mapaDerechoPrincipal = document.getElementById("selectorMapasVCortinillaIzq").value;
-                var mapaIzquierdo = document.getElementById("selectorMapasVCortninillaDer").value;
-
-                // console.log('swipeh:  ',!mapaDerechoPrincipal,mapaDerechoPrincipal)
-                if(!mapaDerechoPrincipal){
-                    listaMapas[0].mapa.setTarget('mapaJS_div')
-                    listaMapas[0].mapa.addControl(swipe)
-                    listaMapas[1].mapa.setTarget('mapaJS_div_2')
-                }
-                else {
-                    for (const mapa of listaMapas) {
-                        if (mapa.titulo == mapaDerechoPrincipal) {
-                            mapa.mapa.setTarget('mapaJS_div')
-                            mapa.mapa.addControl(swipe)
-                        } else if (mapa.titulo == mapaIzquierdo) {
-                            mapa.mapa.setTarget('mapaJS_div_2')
-                        }
-                    }
-    
-                }
-
-                document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
-                swipe.set('orientation', (mode === 'swipev' ? 'vertical' : 'horizontal'));
-                swipe.set('right', false);
+                swipeHFunction(mode) 
                 break;
             }
 
             case 'clip': {
-                // mapaJS_OL_2.setTarget('mapaJS_div')
-                // mapaJS_OL.setTarget('mapaJS_div_2')
-                var mapaPrincipalFondo = document.getElementById("selectorMapasCirculoFondo").value;
-                var mapaCirculo = document.getElementById("selectorMapasCirculoCir").value;
-
-                if(!mapaPrincipalFondo){
-                    listaMapas[0].mapa.setTarget('mapaJS_div')
-                    listaMapas[1].mapa.setTarget('mapaJS_div_2')
-                    listaMapas[1].mapa.addInteraction(clip)
-                } else{
-                    
-                    for (const mapa of listaMapas) {
-                        if (mapa.titulo == mapaPrincipalFondo) {
-                            mapa.mapa.setTarget('mapaJS_div')
-                        } else if (mapa.titulo == mapaCirculo) {
-                            mapa.mapa.setTarget('mapaJS_div_2')
-                            mapa.mapa.addInteraction(clip);
-                        }
-                    }
-                }
-                
-                document.getElementById("mapaJS_div").style.zIndex = 0;
-                document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "absolute";
-                document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "";
+                clipFunction()
                 break;
             }
 
@@ -437,12 +221,30 @@ function setMode(mode) {
                 document.getElementsByClassName("m-content")[0].querySelector("button").onclick = function () {
                     // console.log(nombreMApavalue)
                     nMapa = listaMapas.length +1
-                    window['mapajs'+ nMapa] = createMapWithExistingView('mapaJS_div_2', mapajs);
+                    window['mapajs'+ nMapa] = createMapWithExistingView('mapaJS_div_n', mapajs);
                     window['mapaJS_OL_'+ nMapa] = window['mapajs'+ nMapa].getMapImpl()
-                    window['mapaJS_OL_'+ nMapa].setTarget('mapaJS_div_2')
-                    listaMapas.push({ 'titulo': nombreMApavalue, 'mapa': window['mapaJS_OL_'+ nMapa]})
-                }
+                    window['mapaJS_OL_'+ nMapa].setTarget('mapaJS_div_n')
+                    
+                    mapasOL = listaMapas.map(e=>e.mapa) 
+                    window['Synchronize_'+ nMapa] = new ol.interaction.Synchronize({ maps: mapasOL})
+                    
+                    window['mapaJS_OL_'+ nMapa].addInteraction(window['Synchronize_'+ nMapa] )
 
+                    listaMapas.push({ 'titulo': nombreMApavalue, 'mapa': window['mapaJS_OL_'+ nMapa]})
+
+                    SynchronizeList.forEach(
+                        (element) => {
+                            element.set('maps', element.maps.push(window['mapaJS_OL_'+ nMapa]));
+                        }
+                    );
+
+                    SynchronizeList.push(window['Synchronize_'+ nMapa] )
+                    
+                    selectionOptionsFunction() 
+                    document.getElementById("selectorMapasUnico").selectedIndex = document.getElementById("selectorMapasUnico").length -1
+                    setMode('view1')
+
+                }
 
             }
 
@@ -451,14 +253,18 @@ function setMode(mode) {
         document.getElementById("compareMaps").className = mode;
 
     }
-
+    SynchronizeSelectors(mode)
     for (const mapa of listaMapas) {
         mapa.mapa.updateSize();
     }
-    // mapaJS_OL.updateSize();
-    // mapaJS_OL_2.updateSize();
+
 
 }
+
+// 
+// Sección de funciones
+// 
+
 // Check click and dispatch to map
 mapaJS_OL.on('click', function (e) {
     // console.log(e)
@@ -474,7 +280,6 @@ mapaJS_OL.on('click', function (e) {
         }
     }
 });
-
 
 
 // Función crear mapa
@@ -514,4 +319,312 @@ function createMapWithExistingView(idDiv, mapajs) {
 
 
     return mapObj;
+}
+
+// Función view1
+function view1Function() {
+    var valueMapaUnico = document.getElementById("selectorMapasUnico").value;
+    // console.log(valueMapaUnico)
+    if(!valueMapaUnico){
+        listaMapas[0].mapa.setTarget('mapaJS_div')
+    } else {
+        for (const mapa of listaMapas) {
+            if (mapa.titulo == valueMapaUnico) {
+                mapa.mapa.setTarget('mapaJS_div')
+            } else {
+                mapa.mapa.setTarget('mapaJS_div_2')
+            }
+        }
+    }
+
+    for (const mapa of listaMapas) {
+        mapa.mapa.updateSize();
+    }
+
+    return ;
+}
+
+// Función compare
+function compareFunction() {
+    
+    var mapaDerechoPrincipal = document.getElementById("selectorMapasEspejoDer").value;
+    var mapaIzquierdo = document.getElementById("selectorMapasEspejoIzq").value;
+
+    if(!mapaDerechoPrincipal){
+        listaMapas[0].mapa.setTarget('mapaJS_div')
+        listaMapas[1].mapa.setTarget('mapaJS_div_2')
+    } else {
+
+        for (const mapa of listaMapas) {
+            if (mapa.titulo == mapaDerechoPrincipal) {
+                mapa.mapa.setTarget('mapaJS_div')
+            } else if (mapa.titulo == mapaIzquierdo) {
+                mapa.mapa.setTarget('mapaJS_div_2')
+            } else {
+                mapa.mapa.setTarget('mapaJS_div_n')
+            }
+        }
+    }
+    for (const mapa of listaMapas) {
+        mapa.mapa.updateSize();
+    }
+
+    return ;
+}
+
+// Función clip
+function clipFunction() {
+    
+    var mapaPrincipalFondo = document.getElementById("selectorMapasCirculoFondo").value;
+    var mapaCirculo = document.getElementById("selectorMapasCirculoCir").value;
+
+    if(!mapaPrincipalFondo){
+        listaMapas[0].mapa.setTarget('mapaJS_div')
+        listaMapas[1].mapa.setTarget('mapaJS_div_2')
+        listaMapas[1].mapa.addInteraction(clip)
+    } else{
+        
+        for (const mapa of listaMapas) {
+            if (mapa.titulo == mapaPrincipalFondo) {
+                mapa.mapa.setTarget('mapaJS_div')
+            } else if (mapa.titulo == mapaCirculo) {
+                mapa.mapa.setTarget('mapaJS_div_2')
+                mapa.mapa.addInteraction(clip);
+            } else {
+                mapa.mapa.setTarget('mapaJS_div_n')
+            }
+        }
+    }
+    
+    document.getElementById("mapaJS_div").style.zIndex = 0;
+    document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "absolute";
+    document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "";
+
+    for (const mapa of listaMapas) {
+        mapa.mapa.updateSize();
+    }
+
+    return ;
+}
+
+// Función swipeV
+function swipeVFunction(mode) {
+    var mapaDerechoPrincipal = document.getElementById("selectorMapasHCortinillaDer").value;
+    var mapaIzquierdo = document.getElementById("selectorMapasHCortinillaIzq").value;
+
+    // console.log('swipev:  ',!mapaDerechoPrincipal,mapaDerechoPrincipal)
+    if(!mapaDerechoPrincipal){
+        listaMapas[0].mapa.setTarget('mapaJS_div')
+        listaMapas[0].mapa.addControl(swipe)
+        listaMapas[1].mapa.setTarget('mapaJS_div_2')
+    }
+    else {
+        for (const mapa of listaMapas) {
+            if (mapa.titulo == mapaDerechoPrincipal) {
+                mapa.mapa.setTarget('mapaJS_div')
+                mapa.mapa.addControl(swipe)
+            } else if (mapa.titulo == mapaIzquierdo) {
+                mapa.mapa.setTarget('mapaJS_div_2')
+            } else {
+                mapa.mapa.setTarget('mapaJS_div_n')
+            }
+        }
+
+    }
+
+    document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
+    swipe.set('orientation', (mode === 'swipeh' ? 'horizontal' : 'vertical'));
+    swipe.set('right', true);
+
+    for (const mapa of listaMapas) {
+        mapa.mapa.updateSize();
+    }
+
+    return;
+}
+
+// Función swipeH
+function swipeHFunction(mode) {
+    var mapaDerechoPrincipal = document.getElementById("selectorMapasVCortinillaIzq").value;
+    var mapaIzquierdo = document.getElementById("selectorMapasVCortninillaDer").value;
+
+    // console.log('swipeh:  ',!mapaDerechoPrincipal,mapaDerechoPrincipal)
+    if(!mapaDerechoPrincipal){
+        listaMapas[0].mapa.setTarget('mapaJS_div')
+        listaMapas[0].mapa.addControl(swipe)
+        listaMapas[1].mapa.setTarget('mapaJS_div_2')
+    }
+    else {
+        for (const mapa of listaMapas) {
+            if (mapa.titulo == mapaDerechoPrincipal) {
+                mapa.mapa.setTarget('mapaJS_div')
+                mapa.mapa.addControl(swipe)
+            } else if (mapa.titulo == mapaIzquierdo) {
+                mapa.mapa.setTarget('mapaJS_div_2')
+            } else {
+                mapa.mapa.setTarget('mapaJS_div_n')
+            }
+        }
+
+    }
+
+    document.getElementById("mapaJS_div_2").querySelector(".m-areas").style.position = "absolute";
+    swipe.set('orientation', (mode === 'swipev' ? 'vertical' : 'horizontal'));
+    swipe.set('right', false);
+
+    for (const mapa of listaMapas) {
+        mapa.mapa.updateSize();
+    }
+
+    return;
+}
+
+// Función rellenar selectores
+function selectionOptionsFunction() {
+    var selectorMapas = document.getElementsByClassName("selectorMapasClase");
+    for (const selector of selectorMapas) {
+        // console.log(selector, selector.value)
+
+        for (const mapa of listaMapas) {
+            continueLoop = true
+            selector.childNodes.forEach(
+                (element) => {
+                    if (element.value == mapa.titulo){
+                        continueLoop = false
+                    }
+                }
+            );
+
+            if (!continueLoop) {
+                continue;
+            } 
+
+            var opt = document.createElement('option');
+            if (!selector.value) {
+                opt.selected = true
+            } else if (selector.value == mapa.titulo) {
+                opt.selected = true
+            }
+            else {
+                if (selector.id == "selectorMapasEspejoIzq") {
+                    selectorMapasEspejoIzq = document.getElementById("selectorMapasEspejoDer").value
+
+                    if (selectorMapasEspejoIzq == mapa.titulo) {
+                        opt.selected = false
+                    } else if (!selector.value) {
+                        opt.selected = true
+                    } else {
+                        opt.selected = true
+                    }
+                }
+
+                else if (selector.id == "selectorMapasHCortinillaIzq") {
+                    selectorMapasEspejoIzq = document.getElementById("selectorMapasHCortinillaDer").value
+
+                    if (selectorMapasEspejoIzq == mapa.titulo) {
+                        opt.selected = false
+                    } else if (!selector.value) {
+                        opt.selected = true
+                    } else {
+                        opt.selected = true
+                    }
+                }
+
+                else if (selector.id == "selectorMapasVCortninillaDer") {
+                    selectorMapasEspejoIzq = document.getElementById("selectorMapasVCortinillaIzq").value
+
+                    if (selectorMapasEspejoIzq == mapa.titulo) {
+                        opt.selected = false
+                    } else if (!selector.value) {
+                        opt.selected = true
+                    } else {
+                        opt.selected = true
+                    }
+                }
+
+
+                else if (selector.id == "selectorMapasCirculoCir") {
+                    selectorMapasEspejoIzq = document.getElementById("selectorMapasCirculoFondo").value
+
+                    if (selectorMapasEspejoIzq == mapa.titulo) {
+                        opt.selected = false
+                    } else if (!selector.value) {
+                        opt.selected = true
+                    } else {
+                        opt.selected = true
+                    }
+                }
+            }
+
+            opt.value = mapa.titulo;
+            opt.innerHTML = mapa.titulo;
+            selector.appendChild(opt);
+        }
+
+    }
+    return;
+}
+
+// Función sincronizar Selectores
+function SynchronizeSelectors(mode){
+    // console.log(mode)
+    selectorMapasUnico = document.getElementById("selectorMapasUnico")
+
+    selectorMapasEspejoDer = document.getElementById("selectorMapasEspejoDer")
+    selectorMapasEspejoIzq = document.getElementById("selectorMapasEspejoIzq")
+
+    selectorMapasHCortinillaDer = document.getElementById("selectorMapasHCortinillaDer")
+    selectorMapasHCortinillaIzq = document.getElementById("selectorMapasHCortinillaIzq")
+
+    selectorMapasVCortinillaIzq = document.getElementById("selectorMapasVCortinillaIzq")
+    selectorMapasVCortninillaDer = document.getElementById("selectorMapasVCortninillaDer")
+
+    selectorMapasCirculoFondo = document.getElementById("selectorMapasCirculoFondo")
+    selectorMapasCirculoCir = document.getElementById("selectorMapasCirculoCir")
+
+    if (mode =='view1'){
+        value2 = selectorMapasUnico.value
+        value1 = selectorMapasEspejoDer.value
+    } else if (mode =='compare'){
+
+    }else if (mode =='swipev'){
+
+    }else if (mode =='swipeh'){
+
+    }else if (mode =='clip'){
+
+    }else {
+        value1 = selectorMapasUnico.value
+    }
+
+
+    listSelectPrincipal = [ 
+                            selectorMapasEspejoDer, 
+                            selectorMapasHCortinillaDer, 
+                            selectorMapasVCortinillaIzq,
+                            selectorMapasCirculoFondo
+    ]
+    listSelectSecundary = [
+                            selectorMapasUnico,
+                            selectorMapasEspejoIzq, 
+                            selectorMapasHCortinillaIzq,
+                            selectorMapasVCortninillaDer,
+                            selectorMapasCirculoCir
+    ]
+    console.log(value1)
+    console.log(value2)
+    // TODO:
+    /*/
+        - Sincronizar los select para que se mantengan las selecciones
+    /*/
+    listSelectPrincipal.forEach((selector) => {
+        selector.value = value1
+    });
+    listSelectSecundary.forEach((selector) => {
+        selector.value = value2
+    });
+
+    // document.getElementById("selectorMapasUnico").value = "Mapa 2"
+    // setMode('view1')
+    return;
 }
