@@ -21,9 +21,6 @@ mapaJS_OL_2.addInteraction(select2);
 
 
 // Synchronize the maps 
-// mapaJS_OL.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL_2] }));
-// mapaJS_OL_2.addInteraction(new ol.interaction.Synchronize({ maps: [mapaJS_OL] }));
-
 var Synchronize_1 = new ol.interaction.Synchronize({ maps: [mapaJS_OL_2] })
 var Synchronize_2 = new ol.interaction.Synchronize({ maps: [mapaJS_OL] })
 
@@ -66,10 +63,6 @@ function setMode(mode) {
             mapa.mapa.removeControl(swipe);
             mapa.mapa.removeInteraction(clip);
         }
-        // mapaJS_OL.removeControl(swipe);
-        // mapaJS_OL.removeInteraction(clip);
-        // mapaJS_OL_2.removeInteraction(clip);
-        // mapaJS_OL_2.removeControl(swipe);
 
         document.getElementById("mapaJS_div").style.zIndex = 1;
         document.getElementById("mapaJS_div").querySelector(".m-areas").style.position = "";
@@ -130,15 +123,13 @@ function setMode(mode) {
                 valueMapaUnico = document.getElementById("selectorMapasUnico")
 
                 if (listaMapas.length != valueMapaUnico.options.length) {
-
                     selectionOptionsFunction()  
-
                 }
 
                 botonAceptar = document.getElementById("idAceptar");
                 botonAceptar.onclick = function () {
-                    // console.log('currentMode : ',currentMode)
-                    // console.log('mode : ',mode)
+                    // console.log('1 currentMode : ',currentMode)
+                    // console.log('1 mode : ',mode)
                     for (const mapa of listaMapas) {
                         mapa.mapa.removeControl(swipe);
                         mapa.mapa.removeInteraction(clip);
@@ -172,8 +163,14 @@ function setMode(mode) {
                         clipFunction()
                     }
 
-                }
+                    mode = document.getElementsByClassName("activeSVG")[0].id
 
+
+                    SynchronizeSelectors(mode)
+                    setMode(mode)
+                    
+                
+                }
                 mode = document.getElementsByClassName("activeSVG")[0].id
                 setMode(mode)
                 break;
@@ -355,6 +352,11 @@ function compareFunction() {
         listaMapas[1].mapa.setTarget('mapaJS_div_2')
     } else {
 
+        if (mapaDerechoPrincipal == mapaIzquierdo) {
+            M.toast.error('No puede comparar la misma vista');
+            return
+        }
+
         for (const mapa of listaMapas) {
             if (mapa.titulo == mapaDerechoPrincipal) {
                 mapa.mapa.setTarget('mapaJS_div')
@@ -383,6 +385,11 @@ function clipFunction() {
         listaMapas[1].mapa.setTarget('mapaJS_div_2')
         listaMapas[1].mapa.addInteraction(clip)
     } else{
+
+        if (mapaPrincipalFondo == mapaCirculo) {
+            M.toast.error('No puede comparar la misma vista');
+            return
+        }
         
         for (const mapa of listaMapas) {
             if (mapa.titulo == mapaPrincipalFondo) {
@@ -419,6 +426,12 @@ function swipeVFunction(mode) {
         listaMapas[1].mapa.setTarget('mapaJS_div_2')
     }
     else {
+
+        if (mapaDerechoPrincipal == mapaIzquierdo) {
+            M.toast.error('No puede comparar la misma vista');
+            return
+        }
+
         for (const mapa of listaMapas) {
             if (mapa.titulo == mapaDerechoPrincipal) {
                 mapa.mapa.setTarget('mapaJS_div')
@@ -455,6 +468,13 @@ function swipeHFunction(mode) {
         listaMapas[1].mapa.setTarget('mapaJS_div_2')
     }
     else {
+
+        if (mapaDerechoPrincipal == mapaIzquierdo) {
+            M.toast.error('No puede comparar la misma vista');
+            return
+        }
+
+        
         for (const mapa of listaMapas) {
             if (mapa.titulo == mapaDerechoPrincipal) {
                 mapa.mapa.setTarget('mapaJS_div')
@@ -583,48 +603,68 @@ function SynchronizeSelectors(mode){
     selectorMapasCirculoCir = document.getElementById("selectorMapasCirculoCir")
 
     if (mode =='view1'){
-        value2 = selectorMapasUnico.value
+        value1 = selectorMapasUnico.value
+        value2 = selectorMapasEspejoIzq.value
+        
+    }else if (mode =='compare'){
         value1 = selectorMapasEspejoDer.value
-    } else if (mode =='compare'){
+        value2 = selectorMapasEspejoIzq.value
+        
 
     }else if (mode =='swipev'){
+        value1 = selectorMapasHCortinillaDer.value
+        value2 = selectorMapasHCortinillaIzq.value
+
 
     }else if (mode =='swipeh'){
+        value1 = selectorMapasVCortinillaIzq.value
+        value2 = selectorMapasVCortninillaDer.value
+   
 
     }else if (mode =='clip'){
+        value1 = selectorMapasCirculoFondo.value
+        value2 = selectorMapasCirculoCir.value
+   
 
     }else {
         value1 = selectorMapasUnico.value
+        value2 = selectorMapasEspejoIzq.value
+    }
+
+    if ( (value1 == value2) && (selectorMapasUnico.options.length > 0) ){
+        if (value2 == selectorMapasUnico.options[0].value ){
+            value2 = selectorMapasUnico.options[selectorMapasUnico.options.length -1].value 
+        } else {
+            value2 = selectorMapasUnico.options[0].value 
+        }
     }
 
 
     listSelectPrincipal = [ 
+                            selectorMapasUnico,
                             selectorMapasEspejoDer, 
                             selectorMapasHCortinillaDer, 
                             selectorMapasVCortinillaIzq,
                             selectorMapasCirculoFondo
     ]
     listSelectSecundary = [
-                            selectorMapasUnico,
+                            
                             selectorMapasEspejoIzq, 
                             selectorMapasHCortinillaIzq,
                             selectorMapasVCortninillaDer,
                             selectorMapasCirculoCir
     ]
-    console.log(value1)
-    console.log(value2)
-    // TODO:
-    /*/
-        - Sincronizar los select para que se mantengan las selecciones
-    /*/
-    listSelectPrincipal.forEach((selector) => {
-        selector.value = value1
-    });
-    listSelectSecundary.forEach((selector) => {
-        selector.value = value2
-    });
+    // console.log('listSelectPrincipal:  ',value1)
+    // console.log('listSelectSecundary: ',value2)
 
-    // document.getElementById("selectorMapasUnico").value = "Mapa 2"
-    // setMode('view1')
+    if ( selectorMapasUnico.options.length > 0) {
+        listSelectPrincipal.forEach((selector) => {
+            selector.value = value1
+        });
+        listSelectSecundary.forEach((selector) => {
+            selector.value = value2
+        });
+    }
+    
     return;
 }
