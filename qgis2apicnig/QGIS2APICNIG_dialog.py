@@ -75,14 +75,28 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
     def exportMap(self):
         projectSource = "/QGIS2APICNIG"
         sourceFolder = "/Sources"
+        JSFolder = "/JS"
+        CSSFolder = "/CSS"
+        pluginQGIS2APICNIG = "/pluginQGIS2APICNIG"
+
         exportFolder = self.lineEdit_Folder.text() + projectSource
         exportFolderSources = self.lineEdit_Folder.text() + projectSource + sourceFolder
+        exportJSFolder = self.lineEdit_Folder.text() + projectSource + JSFolder
+        exportCSSFolder= self.lineEdit_Folder.text() + projectSource + CSSFolder
+
+        # exportPluginQGIS2APICNIG = self.lineEdit_Folder.text() + projectSource + pluginQGIS2APICNIG 
 
         if Path(exportFolder).exists() == True:
             shutil.rmtree(exportFolder)
+
         Path(exportFolder).mkdir(parents=True, exist_ok=True)
         Path(exportFolderSources).mkdir(parents=True, exist_ok=True)
-        fileMap=exportFolder + '/index.html'
+        Path(exportJSFolder).mkdir(parents=True, exist_ok=True)
+        Path(exportCSSFolder).mkdir(parents=True, exist_ok=True)
+
+        fileMap = exportFolder + '/index.html'
+        fileJS = exportJSFolder + '/QGIS2APICNIG.js'
+        fileCSS = exportCSSFolder + '/QGIS2APICNIG.css'
 
         tableOfSources = self.tableWidget_capas
         # print("tableOfSources.columnCount(): ", tableOfSources.columnCount())
@@ -227,8 +241,14 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         bounds_crs = ct.transformBoundingBox(extentQGIS)
         bbox = [ bounds_crs.xMinimum() , bounds_crs.yMinimum() , bounds_crs.xMaximum() , bounds_crs.yMaximum() ]
         
+        with open(fileJS, 'w') as filetowrite:
+            filetowrite.write( self.CreateJS(bbox, layers, controls, plugins) )
+
+        with open(fileCSS, 'w') as filetowrite:
+            filetowrite.write( self.CreateCSS() )
+
         with open(fileMap, 'w') as filetowrite:
-            filetowrite.write( self.CreateHTML(bbox, layers, controls, plugins,pluginImports) )
+            filetowrite.write( self.CreateHTML(pluginImports) )
 
         webbrowser.open(fileMap,new=2)
         self.close ()
@@ -1192,15 +1212,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
         return APICNIGStyle
 
-    def CreateHTML(self, bbox, layers, controls, plugins, headerImports):
-
-        layersString = ''
-        for l in layers:
-            layersString = layersString + l
-
-        pluginString = ''
-        for l in plugins:
-            pluginString = pluginString + l
+    def CreateHTML(self, headerImports):
 
         headerImportsString = ''
         for l in headerImports:
@@ -1218,20 +1230,17 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                             <!-- Estilo de la API -->
                             <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign.ol.min.css">
                             
-                            <style type="text/css">
-                                html,
-                                body {{
-                                    margin: 0;
-                                    padding: 0;
-                                    height: 100%;
-                                    overflow: hidden;
-                                }}
-                            </style>
+                            <!-- Estilo personalizado del HTML-->
+                            <link type="text/css" rel="stylesheet" href="./CSS/QGIS2APICNIG.css">
+
                             
                             <!-- Ficheros javascript de la API -->
                             <script type="text/javascript" src="https://componentes.cnig.es/api-core/vendor/browser-polyfill.js"></script>
                             <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/apiign.ol.min.js"></script>
                             <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration.js"></script>
+
+                            <!-- Importación de JS del visualizador-->
+                            <script type="text/javascript" src="./JS/QGIS2APICNIG.js"></script>
 
                             <!-- Importación de extensiones -->
                             {headerImports}
@@ -1241,37 +1250,61 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                         <body>
                             <!-- Contenedor principal del mapa -->
                             <div id="mapaJS_div" class="m-container"></div>
-                            
-                            <script type="text/javascript">
-                                
-                                // Configuración del mapa
-                                let zoomInicial = 5
-                                let longLatInicial = [-3, 40]
-                                const zoom_p = M.config.MAP_VIEWER_ZOOM || zoomInicial;
-                                const center_p = M.config.MAP_VIEWER_CENTER || ol.proj.fromLonLat(longLatInicial);
-                                
-                                M.proxy(false) // Necesario para ejecutar el visualizador en local.
-                                const mapajs = M.map({{
-                                    container: 'mapaJS_div',
-                                    controls: {controls},
-                                    bbox: {bbox}
-                                }});
-                                
-                                const layers_p = M.config.MAP_VIEWER_LAYERS || [];
-                                mapajs.addLayers(layers_p)
-
-                                {layers}
-
-                                {plugins}
-                                
-                            </script>
                         </body>
                     </html>""".format(
-                                    bbox = bbox,
-                                    controls=controls,
-                                    layers = layersString,
-                                    plugins = pluginString,
                                     headerImports=headerImportsString,
                                 )
         return html
 
+    def CreateJS(self, bbox, layers, controls, plugins):
+
+        layersString = ''
+        for l in layers:
+            layersString = layersString + l
+
+        pluginString = ''
+        for l in plugins:
+            pluginString = pluginString + l
+        
+        JS = """
+                                
+            // Configuración del mapa
+            let zoomInicial = 5
+            let longLatInicial = [-3, 40]
+            const zoom_p = M.config.MAP_VIEWER_ZOOM || zoomInicial;
+            const center_p = M.config.MAP_VIEWER_CENTER || ol.proj.fromLonLat(longLatInicial);
+            
+            M.proxy(false) // Necesario para ejecutar el visualizador en local.
+            const mapajs = M.map({{
+                container: 'mapaJS_div',
+                controls: {controls},
+                bbox: {bbox}
+            }});
+            
+            const layers_p = M.config.MAP_VIEWER_LAYERS || [];
+            mapajs.addLayers(layers_p)
+
+            {layers}
+
+            {plugins}
+                                        
+        """.format(
+                    bbox = bbox,
+                    controls=controls,
+                    layers = layersString,
+                    plugins = pluginString                
+                    )
+        return JS
+    
+    def CreateCSS(self):
+
+        CSS = """
+                html,
+                body {{
+                    margin: 0;
+                    padding: 0;
+                    height: 100%;
+                    overflow: hidden;
+                }}
+        """
+        return CSS
