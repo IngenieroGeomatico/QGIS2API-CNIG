@@ -1,7 +1,9 @@
-=== nuevos desarrollos para v0. ===
+=== nuevos desarrollos para v0.6 ===
 
-- Se dejan fijadas las versiones de las librerías de API-CNIG
+- Se añade la fuente de datos MapLibre para ser exportado (JSON de estilos en servicios MVT)
+- Se dejan fijadas las versiones de las librerías de API-CNIG (versión 5.0.0 para el núcleo y 1.1.0 para el selector de capas)
 - Se añade componenente de comparación
+- Se separa HTML, JS y CSS 
 
 === nuevos desarrollos para v0.5 ===
 

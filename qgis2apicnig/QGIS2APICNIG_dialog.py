@@ -84,7 +84,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         exportJSFolder = self.lineEdit_Folder.text() + projectSource + JSFolder
         exportCSSFolder= self.lineEdit_Folder.text() + projectSource + CSSFolder
 
-        # exportPluginQGIS2APICNIG = self.lineEdit_Folder.text() + projectSource + pluginQGIS2APICNIG 
+        exportPluginQGIS2APICNIG = self.lineEdit_Folder.text() + projectSource + pluginQGIS2APICNIG 
 
         if Path(exportFolder).exists() == True:
             shutil.rmtree(exportFolder)
@@ -93,6 +93,16 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         Path(exportFolderSources).mkdir(parents=True, exist_ok=True)
         Path(exportJSFolder).mkdir(parents=True, exist_ok=True)
         Path(exportCSSFolder).mkdir(parents=True, exist_ok=True)
+
+        # Obtención de extensiones personalizadas QGIS2APICNIG
+        checkBox_ComparacionMapas = self.checkBox_ComparacionMapas.isChecked()
+        if checkBox_ComparacionMapas:
+            # print('File name :    ', os.path.basename(__file__))
+            # print('Directory Name:     ', os.path.dirname(__file__))
+            Path(exportPluginQGIS2APICNIG).mkdir(parents=True, exist_ok=True)
+            
+            shutil.copytree(os.path.dirname(__file__)+'/customPlugins/comparadorMapas', exportPluginQGIS2APICNIG+'/comparadorMapas', dirs_exist_ok=True) 
+            shutil.copytree(os.path.dirname(__file__)+'/customPlugins/viglino', exportPluginQGIS2APICNIG+'/viglino', dirs_exist_ok=True) 
 
         fileMap = exportFolder + '/index.html'
         fileJS = exportJSFolder + '/QGIS2APICNIG.js'
@@ -189,6 +199,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         checkBox_ZoomBarrita = self.checkBox_ZoomBarrita.isChecked()
         checkBox_EscalaGrafica = self.checkBox_EscalaGrafica.isChecked()
 
+        
+
 
         # Comprobación controles
         print('checkBox_CapasBase', checkBox_CapasBase)
@@ -210,8 +222,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         # Comprobación plugins
         if checkBox_checkBox_SelectorCapas:
             headerImports = """
-                            <link href="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher.ol.min.css" rel="stylesheet" />
-                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher.ol.min.js"></script>
+                            <link href="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher-1.1.0.ol.min.css" rel="stylesheet" />
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher-1.1.0.ol.min.js"></script>
             """
             stringplugin = """
                             const mp_selectorCapa = new M.plugin.Layerswitcher({
@@ -220,12 +232,12 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     collapsible: true,
                                     https: true,
                                     http: true,
-                                    tooltip: 'Selector de capa superpuesta',
                                     showCatalog: true,
                                     displayLabel: false,
                                     addLayers: true,
                                     statusLayers: true,
                                     modeSelectLayers: 'eyes', // opciones: 'eyes', 'radio'
+                                    isMoveLayers: true,
                                     tools: ['transparency', 'legend', 'zoom', 'information', 'style', 'delete']
                                 });
 
@@ -248,7 +260,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             filetowrite.write( self.CreateCSS() )
 
         with open(fileMap, 'w') as filetowrite:
-            filetowrite.write( self.CreateHTML(pluginImports) )
+            filetowrite.write( self.CreateHTML(pluginImports, checkBox_ComparacionMapas) )
 
         webbrowser.open(fileMap,new=2)
         self.close ()
@@ -758,36 +770,60 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             print(layer['dataSourceUri'].split('&') )
             print(list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0])
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
+            urlJSONURI = list(filter( lambda k: 'styleUrl=' in k, layer['dataSourceUri'].split('&') ))[0]
 
             if urlURI:
                 url = urlURI.split('=')[1]
                 url = url.replace('%7B','{')
                 url = url.replace('%7D','}')
 
-            APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+            
+            if urlJSONURI:
+                jsonURL = urlJSONURI.split('=')[1]
+                stringLayer="""
+                                    mapajs.addLayers(
+                                        new M.layer.MapLibre({{
+                                            url: '{url}',
+                                            name: '{name}',
+                                            extract: true,
+                                            visibility: {visible},
+                                            legend: "{name}",
+                                        }})
+                                    );
 
-            stringLayer="""
-                                mapajs.addLayers(
-                                    new M.layer.MVT({{
-                                        url: '{url}',
-                                        name: '{name}',
-                                        extract: true,
-                                        visibility: {visible},
-                                        legend: "{name}",
-                                    }},{{
-                                        // aplica un estilo a la capa
-                                        style: {APICNIGStyle},
-                                    }})
-                                );
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+                                    """.format(
+                                        url = jsonURL,
+                                        name = layer['nameLegend'],
+                                        visible = str(layer['visible']).lower(),
+                                        zindex = layer['zIndex'],
+                                    )
 
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                )
+            else:
+                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+
+                stringLayer="""
+                                    mapajs.addLayers(
+                                        new M.layer.MVT({{
+                                            url: '{url}',
+                                            name: '{name}',
+                                            extract: true,
+                                            visibility: {visible},
+                                            legend: "{name}",
+                                        }},{{
+                                            // aplica un estilo a la capa
+                                            style: {APICNIGStyle},
+                                        }})
+                                    );
+
+                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+                                    """.format(
+                                        url = url,
+                                        name = layer['nameLegend'],
+                                        visible = str(layer['visible']).lower(),
+                                        APICNIGStyle=APICNIGStyle,
+                                        zindex = layer['zIndex'],
+                                    )
 
         elif layer['QGISlayer'].type() == QgsMapLayer.VectorLayer:
             # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
@@ -1212,11 +1248,231 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
         return APICNIGStyle
 
-    def CreateHTML(self, headerImports):
+    def CreateHTML(self, headerImports, checkBox_ComparacionMapas):
 
         headerImportsString = ''
         for l in headerImports:
             headerImportsString = headerImportsString + l
+
+        body="""
+        <!-- Contenedor principal del mapa -->
+        <div id="mapaJS_div" class="m-container"></div>
+
+        <!-- Importación de JS del visualizador-->
+        <script type="text/javascript" src="./JS/QGIS2APICNIG.js"></script>
+        """
+        CSS_MapasComparacion = ''
+        JS_MapasComparacion = ''
+        if checkBox_ComparacionMapas:
+            CSS_MapasComparacion = """
+            <!-- extensiones OL - viglino -->
+            <link type="text/css" rel="stylesheet" href="./pluginQGIS2APICNIG/viglino/CSS/ol-ext.css">
+            <link type="text/css" rel="stylesheet" href="./pluginQGIS2APICNIG/viglino/CSS/font-gis.css">
+            <script type="text/javascript" src="./pluginQGIS2APICNIG/viglino/JS/ol-ext.js"></script>
+
+            <!-- extensiones propias de QGIS2APICNIG (CSS) -->
+            <link type="text/css" rel="stylesheet" href="./pluginQGIS2APICNIG/comparadorMapas/CSS/comparadorMapas.css">
+            """
+
+            JS_MapasComparacion = """
+            <!-- Importación de JS del visualizador-->
+            <script type="text/javascript" src="./pluginQGIS2APICNIG/comparadorMapas/JS/comparadorMapas.js"></script>
+            """
+
+            body="""
+            <!-- The Modal -->
+            <div id="myModal" class="modal">
+
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>Configuración de comparación</h3>
+
+                    <table id="tablaModal">
+                        <tr>
+                            <th>Botón</th>
+                            <th>Información</th>
+                        </tr>
+                        <tr>
+                            <td><i class="fg-map-add"></i></td>
+                            <td>Al hacer clic, abre una ventana modal para crear una nueva vista al visualizador</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fg-map-o"></i></td>
+                            <td>
+                                Al hacer clic, visualiza el mapa seleccionado
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="fg-screen-dub-o"></i></td>
+                            <td>
+                                Permite la comparación en espejo.
+                                Se divide el visualizador en dos partes donde se puede comparar de forma síncrona dos mapas
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="fg-screen-split-h"></i></td>
+                            <td>
+                                Permite al comparación en cortina horizontal.
+                                Se divide el visualizador superponiendo los dos mapas entre si, pudiendo ver la misma extensión
+                                en los dos mapas
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="fg-screen-split-v"></i></td>
+                            <td>
+                                Permite al comparación en cortina vertical.
+                                Se divide el visualizador superponiendo los dos mapas entre si, pudiendo ver la misma extensión
+                                en los dos mapas
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="fg-screen-mag"></i></td>
+                            <td>
+                                Permite la comparación zonal.
+                                Habilita un círculo que permite comparar los dos mapas según se mueve el ratón.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><i class="fg-map-options-alt"></i></td>
+                            <td>
+                                Permite configurar los mapas a visualizar en cada sección de comparación.
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- The Sidenav -->
+            <div id="mySidenav" class="sidenav">
+
+                <div class="grid-container">
+                    <h3 style="padding-left: 10px;">Configuración comparación</h3>
+                    <a href="javascript:void(0)" class="closebtn">&times;</a>
+                </div>
+
+
+                <table id="tablaConfig">
+                    <tr>
+                        <th>Botón</th>
+                        <th>Configuración</th>
+                    </tr>
+                    <tr id="table_view1" class="activeTable">
+                        <td><i class="fg-map-o"></i></td>
+                        <td>
+                            <div class="grid-container">
+                                <p>Mapa:</p>
+                                <select id="selectorMapasUnico" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="table_compare">
+                        <td><i class="fg-screen-dub-o"></i></td>
+                        <td>
+                            <div class="grid-container">
+                                <p>Mapa derecho:</p>
+                                <select id="selectorMapasEspejoDer" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                                <p>Mapa izquierdo:</p>
+                                <select id="selectorMapasEspejoIzq" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="table_swipev">
+                        <td><i class="fg-screen-split-h"></i></td>
+                        <td>
+                            <div class="grid-container">
+                                <p>Mapa derecho:</p>
+                                <select id="selectorMapasHCortinillaDer" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                                <p>Mapa izquierdo:</p>
+                                <select id="selectorMapasHCortinillaIzq" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="table_swipeh">
+                        <td><i class="fg-screen-split-v"></i></td>
+                        <td>
+                            <div class="grid-container">
+                                <p>Mapa arriba:</p>
+                                <select id="selectorMapasVCortinillaIzq" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                                <p>Mapa abajo:</p>
+                                <select id="selectorMapasVCortninillaDer" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="table_clip">
+                        <td><i class="fg-screen-mag"></i></td>
+                        <td>
+                            <div class="grid-container">
+                                <p>Mapa fondo:</p>
+                                <select id="selectorMapasCirculoFondo" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                                <p>Mapa círculo:</p>
+                                <select id="selectorMapasCirculoCir" class="selectorMapasClase" name="Selector de mapa">
+
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="grid-container">
+                    <p></p>
+                    <button id="idAceptar" class="aceptar">aceptar</button>
+                </div>
+            </div>
+
+
+
+            <!-- div comparación -->
+            <div class="tools">
+                <i id="addMap" class="fg-map-add" onclick="setMode('addMap')" title="Añadir mapa"></i>
+                <i id="view1" class="fg-map-o activeSVG" onclick="setMode('view1')" title="Mapa único"></i>
+                <i id="compare" class="fg-screen-dub-o" onclick="setMode('compare')" title="Compare"></i>
+                <i id="swipev" class="fg-screen-split-h" onclick="setMode('swipev')" title="Swipe V"></i>
+                <i id="swipeh" class="fg-screen-split-v" onclick="setMode('swipeh')" title="Swipe V"></i>
+                <i id="clip" class="fg-screen-mag" onclick="setMode('clip')" title="Clip"></i>
+                <i id="settings" class="fg-map-options-alt" onclick="setMode('settings')" title="configuración"></i>
+                <i id="info" class="fg-poi-info-o" onclick="setMode('info')" title="info"></i>
+            </div>
+
+            <!-- Contenedor principal del mapa -->
+            <div id="compareMaps">
+
+                <div id="mapaJS_div" class="m-container m-mapea-container compareMaps" 
+                    style="z-index: 1;"
+                    >
+                </div>
+                <div id="mapaJS_div_2" class="m-container m-mapea-container compareMaps" 
+                    style="z-index: 0;"
+                    >
+                </div>
+                <div id="mapaJS_div_n" class="m-container m-mapea-container compareMaps" 
+                    style="z-index: -1;"
+                    >
+                </div>
+
+            </div>
+
+            <!-- Importación de JS del visualizador-->
+            <script type="text/javascript" src="./JS/QGIS2APICNIG.js"></script>
+            """
+
 
         html = """<!DOCTYPE html>
                     <html>
@@ -1227,32 +1483,40 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                             <meta name="cnig" content="yes">
                             <title>Visualizador API-CNIG</title>
                             
-                            <!-- Estilo de la API -->
-                            <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign.ol.min.css">
+                            <!--          -->
+                            <!-- API-CNIG -->
+                            <!--          -->
+
+                            <!-- CSS API-CNIG -->
+                            <link type="text/css" rel="stylesheet" href="https://componentes.cnig.es/api-core/assets/css/apiign-5.0.0.ol.min.css">
                             
+                            <!-- JS API-CNIG  -->
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/vendor/browser-polyfill.js"></script>
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/apiign-5.0.0.ol.min.js"></script>
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration-5.0.0.js"></script>
+
+                            <!-- extensiones API-CNIG -->
+                            {headerImports}
+
+                            {CSS_MapasComparacion}
+
+
                             <!-- Estilo personalizado del HTML-->
                             <link type="text/css" rel="stylesheet" href="./CSS/QGIS2APICNIG.css">
-
-                            
-                            <!-- Ficheros javascript de la API -->
-                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/vendor/browser-polyfill.js"></script>
-                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/apiign.ol.min.js"></script>
-                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/js/configuration.js"></script>
-
-                            <!-- Importación de JS del visualizador-->
-                            <script type="text/javascript" src="./JS/QGIS2APICNIG.js"></script>
-
-                            <!-- Importación de extensiones -->
-                            {headerImports}
                             
                         </head>
                         
                         <body>
-                            <!-- Contenedor principal del mapa -->
-                            <div id="mapaJS_div" class="m-container"></div>
+                            {body}
+
+                            {JS_MapasComparacion}
+
                         </body>
                     </html>""".format(
                                     headerImports=headerImportsString,
+                                    CSS_MapasComparacion=CSS_MapasComparacion,
+                                    JS_MapasComparacion=JS_MapasComparacion,
+                                    body=body
                                 )
         return html
 
@@ -1300,11 +1564,39 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
         CSS = """
                 html,
-                body {{
+                body {
                     margin: 0;
                     padding: 0;
                     height: 100%;
                     overflow: hidden;
-                }}
+                }
+
+                .m-panel button, 
+                .m-panel.m-plugin-layerswitcher.opened button.m-panel-btn, 
+                .m-areas>div.m-area>div.m-panel.collapsed>button.m-panel-btn,
+                .ol-zoomslider>button.ol-zoomslider-thumb,
+                .m-areas>div.m-area>div.m-panel.no-collapsible>div.m-panel-controls>div.m-control.m-container.m-background>button,
+                .m-scale-container {
+                    background-color: orange !important;
+                }
+
+                .m-areas>div.m-area>div.m-panel.no-collapsible>div.m-panel-controls>div.m-control.m-container.m-background>button.m-background-group-btn.activeBaseLayerButton{
+                    background-color: #cd7d00 !important;
+                }
+
+                .ol-scale-line .ol-scale-line-inner {
+                    border-color: orange;
+                    color: orange;
+                    font-weight: 700;
+                }
+
+                .ol-scale-line.ol-unselectable {
+                    background: white !important;
+                }
+  
+
+                .m-panel section button {
+                    background-color: transparent !important;
+                }
         """
         return CSS

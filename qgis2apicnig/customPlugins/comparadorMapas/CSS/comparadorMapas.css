@@ -158,24 +158,9 @@ td i {
     display: inline-block;
 }
 
-#compareMaps .m-panel button {
-    background-color: #ff6600 !important
-}
-
-#compareMaps .m-background-group-btn.activeBaseLayerButton {
-    background-color: orange !important;
-}
-
-#compareMaps .m-panel section button {
-    background-color: transparent !important
-}
-
 .modal .m-content {
     right: -50%;
 }
-
-
-
 
 
 .sidenav {
@@ -215,4 +200,9 @@ td i {
 
 .activeSVG {
     color: orange
+}
+
+div.m-mapea-container div.m-dialog div.m-title,
+div.m-dialog.info div.m-button>button  {
+    background-color: orange;
 }
