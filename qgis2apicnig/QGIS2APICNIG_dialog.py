@@ -221,8 +221,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         # Comprobación plugins
         if checkBox_checkBox_SelectorCapas:
             headerImports = """
-                            <link href="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher-1.1.0.ol.min.css" rel="stylesheet" />
-                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher-1.1.0.ol.min.js"></script>
+                            <link href="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher-2.0.0.ol.min.css" rel="stylesheet" />
+                            <script type="text/javascript" src="https://componentes.cnig.es/api-core/plugins/layerswitcher/layerswitcher-2.0.0.ol.min.js"></script>
             """
             stringplugin = """
                             const mp_selectorCapa = new M.plugin.Layerswitcher({
