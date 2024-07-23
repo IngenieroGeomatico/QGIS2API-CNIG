@@ -203,7 +203,6 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
 
         # Comprobación controles
-        print('checkBox_CapasBase', checkBox_CapasBase)
         if checkBox_CapasBase:
             controls.append('backgroundlayers')
         if checkBox_Rotacion:
@@ -766,9 +765,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
                 
         elif layer['layerSourceType'] == 'MVT':
-            print(layer['dataSourceUri'])
-            print(layer['dataSourceUri'].split('&') )
-            print(list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0])
+            # print(layer['dataSourceUri'])
+            # print(layer['dataSourceUri'].split('&') )
+            # print(list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0])
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
             urlJSONURI = list(filter( lambda k: 'styleUrl=' in k, layer['dataSourceUri'].split('&') ))[0]
 
@@ -886,19 +885,19 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         except Exception as e:
             propertiesStyle = "- - -"
 
-        print('_____________________________')
-        print('typeStyle  :',typeStyle)
-        print('legendClassificationAttribute  :',legendClassificationAttribute)
-        print('propertiesStyle :',propertiesStyle)
-        print('_____________________________')
+        # print('_____________________________')
+        # print('typeStyle  :',typeStyle)
+        # print('legendClassificationAttribute  :',legendClassificationAttribute)
+        # print('propertiesStyle :',propertiesStyle)
+        # print('_____________________________')
 
         returnStyleDefault = True
 
         if typeStyle == 'singleSymbol':
-            print('/////////////')
-            print(typeStyle)
-            print(qgisLayer.renderer())
-            print('/////////////')
+            # print('/////////////')
+            # print(typeStyle)
+            # print(qgisLayer.renderer())
+            # print('/////////////')
 
             
             if 'color' in propertiesStyle:
@@ -985,9 +984,9 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             polygonStyle = 'polygon:{}'
             pointStyle = 'point:{}'
             for style in qgisLayer.renderer().styles():
-                print(style.symbol())
-                print(style.symbol().type(), str(style.symbol().type()))
-                print(style.symbol().symbolLayer(0).properties())
+                # print(style.symbol())
+                # print(style.symbol().type(), str(style.symbol().type()))
+                # print(style.symbol().symbolLayer(0).properties())
 
                 propertiesStyle = style.symbol().symbolLayer(0).properties()
                 
