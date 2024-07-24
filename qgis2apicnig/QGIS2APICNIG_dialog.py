@@ -769,7 +769,6 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
             # print(layer['dataSourceUri'].split('&') )
             # print(list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0])
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
-            urlJSONURI = list(filter( lambda k: 'styleUrl=' in k, layer['dataSourceUri'].split('&') ))[0]
 
             if urlURI:
                 url = urlURI.split('=')[1]
@@ -777,52 +776,57 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                 url = url.replace('%7D','}')
 
             
-            if urlJSONURI:
-                jsonURL = urlJSONURI.split('=')[1]
-                stringLayer="""
-                                    mapajs.addLayers(
-                                        new M.layer.MapLibre({{
-                                            url: '{url}',
-                                            name: '{name}',
-                                            extract: true,
-                                            visibility: {visible},
-                                            legend: "{name}",
-                                        }})
-                                    );
+            APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                    """.format(
-                                        url = jsonURL,
-                                        name = layer['nameLegend'],
-                                        visible = str(layer['visible']).lower(),
-                                        zindex = layer['zIndex'],
+            stringLayer="""
+                                mapajs.addLayers(
+                                    new M.layer.MVT({{
+                                        url: '{url}',
+                                        name: '{name}',
+                                        extract: true,
+                                        visibility: {visible},
+                                        legend: "{name}",
+                                    }},{{
+                                        // aplica un estilo a la capa
+                                        style: {APICNIGStyle},
+                                    }})
+                                );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    APICNIGStyle=APICNIGStyle,
+                                    zindex = layer['zIndex'],
                                     )
 
-            else:
-                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+        elif layer['layerSourceType'] == 'MapLibre':
+            # print(layer['dataSourceUri'])
+            # print(layer['dataSourceUri'].split('&') )
+            # print(list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0])
+            urlJSONURI = list(filter( lambda k: 'styleUrl=' in k, layer['dataSourceUri'].split('&') ))[0]
 
-                stringLayer="""
-                                    mapajs.addLayers(
-                                        new M.layer.MVT({{
-                                            url: '{url}',
-                                            name: '{name}',
-                                            extract: true,
-                                            visibility: {visible},
-                                            legend: "{name}",
-                                        }},{{
-                                            // aplica un estilo a la capa
-                                            style: {APICNIGStyle},
-                                        }})
-                                    );
+            jsonURL = urlJSONURI.split('=')[1]
+            stringLayer="""
+                                mapajs.addLayers(
+                                    new M.layer.MapLibre({{
+                                        url: '{url}',
+                                        name: '{name}',
+                                        extract: true,
+                                        visibility: {visible},
+                                        legend: "{name}",
+                                    }})
+                                );
 
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                    """.format(
-                                        url = url,
-                                        name = layer['nameLegend'],
-                                        visible = str(layer['visible']).lower(),
-                                        APICNIGStyle=APICNIGStyle,
-                                        zindex = layer['zIndex'],
-                                    )
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+                                """.format(
+                                    url = jsonURL,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    zindex = layer['zIndex'],
+                                )
+
 
         elif layer['QGISlayer'].type() == QgsMapLayer.VectorLayer:
             # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS

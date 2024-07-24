@@ -290,7 +290,10 @@ class QGIS2APICNIG:
                 storageType = layer.dataProvider().storageType()
 
             elif layer.type() == QgsMapLayer.VectorTileLayer:
-                if "%7By%7D" in uri or "{y}" in uri:
+                # print(uri)
+                if "styleUrl=" in uri:
+                    storageType = "MapLibre"
+                elif "%7By%7D" in uri or "{y}" in uri:
                     storageType = "MVT"
                 else:
                     storageType = "---"
