@@ -284,7 +284,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     mapajs.addLayers(
                                         new M.layer.GeoJSON({{
                                                 source: {source}, 
-                                                name: '{layerGJSON}',
+                                                name: '{name}',
                                                 legend: "{name}",
                                                 extract: true,
                                             }}, {{
@@ -324,7 +324,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     mapajs.addLayers(
                                         new M.layer.GeoJSON({{
                                                 source: {source}, 
-                                                name: '{layerGJSON}',
+                                                name: '{name}',
                                                 legend: "{name}",
                                                 extract: true,
                                             }}, {{
