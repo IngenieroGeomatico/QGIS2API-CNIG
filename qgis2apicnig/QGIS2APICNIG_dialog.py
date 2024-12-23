@@ -432,6 +432,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                         url: '{url}',
                                         name: "{layerWMTS}",
                                         legend: "{name}",
+                                        matrixSet: 'GoogleMapsCompatible',
                                         visibility: {visible},
                                         }},
                                         {{
