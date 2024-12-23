@@ -504,7 +504,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
             APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
-            stringLayer="""
+            if type(APICNIGStyle) != list:
+                stringLayer="""
                                 mapajs.addWFS(
                                      new M.layer.WFS({{
                                             url: {url}, 
@@ -530,6 +531,36 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     zindex = layer['zIndex'],
                                 )
         
+            else:
+                stringLayer="""
+                                {stylesList}
+
+                                mapajs.addWFS(
+                                     new M.layer.WFS({{
+                                            url: {url}, 
+                                            name: {layerWFS},
+                                            legend: "{name}",
+                                            extract: true,
+                                        }}, {{
+                                        // aplica un estilo a la capa
+                                            style: {APICNIGStyle},
+                                            visibility: {visible} // capa no visible en el mapa
+                                        }}, {{
+                                            opacity: 1 // aplica opacidad a la capa
+                                        }})
+                                );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    layerWFS=layerWFS,
+                                    stylesList= APICNIGStyle[1],
+                                    APICNIGStyle=APICNIGStyle[0],
+                                    zindex = layer['zIndex'],
+                                )
+        
         elif layer['layerSourceType'] == 'GeoJSON':
 
             if 'http' in layer['dataSourceUri']:
@@ -549,7 +580,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 mapajs.addLayers(
                                      new M.layer.GeoJSON({{
                                             url: '{url}', 
-                                            name: '{layerGJSON}',
+                                            name: '{name}',
                                             legend: "{name}",
                                             extract: true,
                                         }}, {{
@@ -580,7 +611,7 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                 mapajs.addLayers(
                                      new M.layer.GeoJSON({{
                                             url: '{url}', 
-                                            name: '{layerGJSON}',
+                                            name: '{name}',
                                             legend: "{name}",
                                             extract: true,
                                         }}, {{
@@ -692,7 +723,8 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
             APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
 
-            stringLayer="""
+            if type(APICNIGStyle) != list:
+                stringLayer="""
                                 mapajs.addOGCAPIFeatures(
                                      new M.layer.OGCAPIFeatures({{
                                             url: {url}, 
@@ -718,7 +750,37 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
                                     APICNIGStyle=APICNIGStyle,
                                     zindex = layer['zIndex'],
             )
+            else:
+                stringLayer="""
+                                {stylesList}
 
+                                mapajs.addOGCAPIFeatures(
+                                     new M.layer.OGCAPIFeatures({{
+                                            url: {url}, 
+                                            name: {layerOGCAPI_Features},
+                                            legend: "{name}",
+                                            extract: true,
+                                            limit: 100
+                                        }}, {{
+                                        // aplica un estilo a la capa
+                                            style: {APICNIGStyle},
+                                            visibility: {visible} // capa no visible en el mapa
+                                        }}, {{
+                                            opacity: 1 // aplica opacidad a la capa
+                                        }})
+                                );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    layerOGCAPI_Features=layerOGCAPI_Features,
+                                    stylesList= APICNIGStyle[1],
+                                    APICNIGStyle=APICNIGStyle[0],
+                                    zindex = layer['zIndex'],
+            )
+            
         elif layer['layerSourceType'] == 'LIBKML':
 
             if 'http' in layer['dataSourceUri']:
