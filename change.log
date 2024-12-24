@@ -1,3 +1,9 @@
+=== nuevos desarrollos para v0.7 ===
+- Se arregla el parámetro TileMatrixSet en servicios WMTS
+- Se arregla aplicar estilos categoricos en geojson no locales y servicios
+- Se añaden Geotiff
+
+
 === nuevos desarrollos para v0.6 ===
 
 - Se añade la fuente de datos MapLibre para ser exportado (JSON de estilos en servicios MVT)
