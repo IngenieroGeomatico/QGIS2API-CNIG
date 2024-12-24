@@ -234,6 +234,7 @@ class QGIS2APICNIG:
             print('layer.name():', layer.name() )
             print('layer.source() :',layer.source())
             print('dataSourceUri():', layer.dataProvider().dataSourceUri())
+            # print("layer.htmlMetadata()", layer.htmlMetadata())
             try:
                 print('storageType():', layer.dataProvider().storageType())
             except:
@@ -305,6 +306,8 @@ class QGIS2APICNIG:
                     storageType = "TMS"
                 elif "tileMatrixSet" in uri:
                     storageType = "WMTS"
+                elif ("GeoTIFF" in layer.htmlMetadata() and "/vsicurl/" in uri):
+                    storageType = "GeoTIFF"
                 elif not 'url=' in uri:
                     storageType = "---"
                 elif layer.providerType() == 'wms':

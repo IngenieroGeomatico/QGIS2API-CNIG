@@ -411,6 +411,32 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
 
                                 )
 
+        elif layer['layerSourceType'] == 'GeoTIFF':
+            urlURI = layer['dataSourceUri']
+
+            if urlURI:
+                url = urlURI.replace("/vsicurl/","")
+
+            stringLayer="""
+                                mapajs.addLayers(
+                                    new M.layer.GeoTIFF({{
+                                        url: '{url}',
+                                        name: '{name}',
+                                        visibility: {visible},
+                                        legend: '{name}',
+                                    }})
+                                );
+
+                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
+                                """.format(
+                                    url = url,
+                                    name = layer['nameLegend'],
+                                    visible = str(layer['visible']).lower(),
+                                    zindex = layer['zIndex'],
+
+                                )
+
+
         elif layer['layerSourceType'] == 'WMTS':
             urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
             formatURI = list(filter( lambda k: 'format=' in k, layer['dataSourceUri'].split('&') ))[0]
