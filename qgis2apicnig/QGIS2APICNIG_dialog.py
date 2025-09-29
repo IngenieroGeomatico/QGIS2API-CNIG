@@ -38,7 +38,7 @@ from qgis.core import (
 from qgis.gui import QgsMapCanvas
 from qgis.utils import iface, Qgis
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets, QtCore
 
 
 
@@ -58,6 +58,21 @@ class QGIS2APICNIGDialog(QtWidgets.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+
+        # Ventana de aviso de obsolescencia
+        msg = QtWidgets.QMessageBox(self)
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setWindowTitle("Aviso: Plugin obsoleto")
+        msg.setTextFormat(QtCore.Qt.RichText)
+        msg.setText(
+            "<b>Este plugin está obsoleto, debido a la evolución de API-CNIG a API-IDEE</b><br><br>"
+            "Por favor, utiliza el nuevo plugin QGIS2API-IDEE:<br>"
+            "<br>"
+            "<a href='https://plugins.qgis.org/plugins/qgis2apiidee/'>QGIS2API-IDEE</a>"
+        )
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msg.exec_()
+
 
     def selectFolder(self):
         dialog = QtWidgets.QFileDialog()
