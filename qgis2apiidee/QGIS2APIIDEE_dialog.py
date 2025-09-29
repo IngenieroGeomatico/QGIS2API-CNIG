@@ -26,47 +26,71 @@ import os
 from pathlib import Path
 import shutil
 import webbrowser
+import urllib.parse
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
 
 from qgis.core import (
-                        QgsProject, QgsMapLayer, QgsWkbTypes, QgsCoordinateTransform, 
-                        QgsCoordinateReferenceSystem, QgsVectorFileWriter, QgsCoordinateTransformContext,
-                        QgsMessageLog
-                       )
+    QgsProject, QgsMapLayer, QgsWkbTypes, QgsCoordinateTransform,
+    QgsCoordinateReferenceSystem, QgsVectorFileWriter, QgsCoordinateTransformContext,
+    QgsMessageLog
+)
 from qgis.gui import QgsMapCanvas
 from qgis.utils import iface, Qgis
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets, QtCore
 
-
-
-# This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'QGIS2APIIDEE_dialog_base.ui'))
 
 
 class QGIS2APIIDEEDialog(QtWidgets.QDialog, FORM_CLASS):
-    
+
     def __init__(self, parent=None):
-        """Constructor."""
         super(QGIS2APIIDEEDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+
+    # --- Métodos auxiliares ---
+
+    def _save_vector_layer_as_geojson(self, layer, export_folder, name):
+        """Guarda una capa vectorial como GeoJSON y devuelve el nombre de variable JS."""
+        path = f"{export_folder}/{name}.js"
+        options = ["COORDINATE_PRECISION=6"]
+        e, err = QgsVectorFileWriter.writeAsVectorFormat(
+            layer, path + '_tmp', "utf-8",
+            QgsCoordinateReferenceSystem("EPSG:4326"),
+            'GeoJson', 0, layerOptions=options
+        )
+        if e == QgsVectorFileWriter.NoError:
+            with open(path, mode="w", encoding="utf8") as f:
+                f.write(f"var {name} = ")
+                with open(path + '_tmp', encoding="utf8") as tmpFile:
+                    for line in tmpFile:
+                        f.write(line.strip("\n\t "))
+            os.remove(path + '_tmp')
+            return name
+        else:
+            QgsMessageLog.logMessage(
+                f"Could not write json file {path}: {err}",
+                "QGIS2APIIDEE", level=Qgis.Critical)
+            return None
+
+    def _get_url_param(self, uri, param, sep='&'):
+        """Extrae el valor de un parámetro de una URI."""
+        try:
+            return next(filter(lambda k: f'{param}=' in k, uri.split(sep))).split('=')[1]
+        except StopIteration:
+            return None
 
     def selectFolder(self):
         dialog = QtWidgets.QFileDialog()
-        if self.lineEdit_Folder.text().replace(" ","").replace("—","_") == '':
+        if self.lineEdit_Folder.text().replace(" ", "").replace("—", "_") == '':
             folder_path = dialog.getExistingDirectory(None, "Selecciona carpeta de salida")
         else:
-            folder_path = dialog.getExistingDirectory(self.lineEdit_Folder, "Selecciona carpeta de salida")  
+            folder_path = dialog.getExistingDirectory(self.lineEdit_Folder, "Selecciona carpeta de salida")
 
-        if folder_path == None or folder_path == "":
+        if folder_path is None or folder_path == "":
             folder_path = self.lineEdit_Folder.text()
 
         self.lineEdit_Folder.setText(folder_path)
@@ -82,11 +106,11 @@ class QGIS2APIIDEEDialog(QtWidgets.QDialog, FORM_CLASS):
         exportFolder = self.lineEdit_Folder.text() + projectSource
         exportFolderSources = self.lineEdit_Folder.text() + projectSource + sourceFolder
         exportJSFolder = self.lineEdit_Folder.text() + projectSource + JSFolder
-        exportCSSFolder= self.lineEdit_Folder.text() + projectSource + CSSFolder
+        exportCSSFolder = self.lineEdit_Folder.text() + projectSource + CSSFolder
 
-        exportPluginQGIS2APIIDEE = self.lineEdit_Folder.text() + projectSource + pluginQGIS2APIIDEE 
+        exportPluginQGIS2APIIDEE = self.lineEdit_Folder.text() + projectSource + pluginQGIS2APIIDEE
 
-        if Path(exportFolder).exists() == True:
+        if Path(exportFolder).exists():
             shutil.rmtree(exportFolder)
 
         Path(exportFolder).mkdir(parents=True, exist_ok=True)
@@ -97,896 +121,331 @@ class QGIS2APIIDEEDialog(QtWidgets.QDialog, FORM_CLASS):
         # Obtención de extensiones personalizadas QGIS2APIIDEE
         checkBox_ComparacionMapas = self.checkBox_ComparacionMapas.isChecked()
         if checkBox_ComparacionMapas:
-            # print('File name :    ', os.path.basename(__file__))
-            # print('Directory Name:     ', os.path.dirname(__file__))
             Path(exportPluginQGIS2APIIDEE).mkdir(parents=True, exist_ok=True)
-            
-            shutil.copytree(os.path.dirname(__file__)+'/customPlugins/comparadorMapas', exportPluginQGIS2APIIDEE+'/comparadorMapas', dirs_exist_ok=True) 
-            shutil.copytree(os.path.dirname(__file__)+'/customPlugins/viglino', exportPluginQGIS2APIIDEE+'/viglino', dirs_exist_ok=True) 
+            shutil.copytree(os.path.dirname(__file__) + '/customPlugins/comparadorMapas',
+                            exportPluginQGIS2APIIDEE + '/comparadorMapas', dirs_exist_ok=True)
+            shutil.copytree(os.path.dirname(__file__) + '/customPlugins/viglino',
+                            exportPluginQGIS2APIIDEE + '/viglino', dirs_exist_ok=True)
 
         fileMap = exportFolder + '/index.html'
         fileJS = exportJSFolder + '/QGIS2APIIDEE.js'
         fileCSS = exportCSSFolder + '/QGIS2APIIDEE.css'
 
         tableOfSources = self.tableWidget_capas
-        # print("tableOfSources.columnCount(): ", tableOfSources.columnCount())
-        # print("tableOfSources.rowCount(): ", tableOfSources.rowCount())
 
         layers = []
         controls = []
         plugins = []
         pluginImports = []
 
-        # Contenido de la tabla:
-        # [ 0-> capa superpuesta, 1-> visible, 2-> tipo de capa, 3-> fuente de la capa, 4-> nombre]
         initialZIndexLayer = 100
-        initialZIndexLayerMax = initialZIndexLayer + tableOfSources.rowCount()
         for r in range(tableOfSources.rowCount()):
-            layer={
-                'layerSourceType':'',
-                'url_path':'',
-                'format':'',
-                'style':'',
-                'nameLayer':'',
-                'nameLegend':'',
-                'visible':0,
-                'isLocal':0,
-                'dataSourceUri':'',
-                'source':'',
-                'QGISlayer':'',
-                'sourceFolder':sourceFolder,
-                'exportFolderSources':exportFolderSources,
+            layer = {
+                'layerSourceType': '',
+                'url_path': '',
+                'format': '',
+                'style': '',
+                'nameLayer': '',
+                'nameLegend': '',
+                'visible': 0,
+                'isLocal': 0,
+                'dataSourceUri': '',
+                'source': '',
+                'QGISlayer': '',
+                'sourceFolder': sourceFolder,
+                'exportFolderSources': exportFolderSources,
                 'zIndex': initialZIndexLayer - r
             }
-            
-            
+
             for c in range(tableOfSources.columnCount()):
                 item = tableOfSources.item(r, c)
-                if item == None:
+                if item is None:
                     cell_widget = tableOfSources.cellWidget(r, c)
                     if cell_widget is not None:
                         chk_box = cell_widget.findChild(QtWidgets.QCheckBox).isChecked()
-                        # c = 0 --> capa supuerpuesta
-                        if c == 0:
-                            # print('check capa superpuesta:  ',chk_box)
-                            if chk_box == False:
-                                break
-                        # c = 1 --> capa visible
+                        if c == 0 and not chk_box:
+                            break
                         elif c == 1:
-                            # print('check visible:  ',chk_box)
                             layer['visible'] = chk_box
                             continue
-                
                 else:
                     text = str(item.text())
-
-                    # c = 2 --> tipo de capa
-                    if c == 2:
-                        # print('tipo de la capa: ',text)
-                        pass
-                    
-                    # c = 3 --> fuente de la capa
-                    elif c == 3:
-                        # print('fuente de la capa: ',text)
+                    if c == 3:
                         layer['layerSourceType'] = text
-                    
-                    # c = 4 --> nombre
                     elif c == 4:
                         QGISlayer = QgsProject.instance().mapLayersByName(text)[0]
                         layer['QGISlayer'] = QGISlayer
-                        # print('nombre de la capa: ',QGISlayer.name())
                         layer['nameLegend'] = QGISlayer.name()
                         layer['dataSourceUri'] = QGISlayer.dataProvider().dataSourceUri()
                         layer['source'] = QGISlayer.source()
-
                         if layer['dataSourceUri'] == '':
-                            layer['dataSourceUri'] = layer['source'] 
-                    
-                if c == tableOfSources.columnCount() -1 :
-                    layers.append( self.JSONLayer2StringLayer(layer) )      
-        
-        layers = list(filter( lambda k: '' != k, layers ))        
-        layers = list(reversed(layers))    
+                            layer['dataSourceUri'] = layer['source']
+                if c == tableOfSources.columnCount() - 1:
+                    layers.append(self.JSONLayer2StringLayer(layer))
 
-        # Obtención de controles y plugins
-        # ["scale","scaleline","panzoombar","panzoom","location","getfeatureinfo","rotate","backgroundlayers"]
-        checkBox_checkBox_SelectorCapas = self.checkBox_SelectorCapas.isChecked()
-        checkBox_CapasBase = self.checkBox_CapasBase.isChecked()
-        checkBox_Rotacion = self.checkBox_Rotacion.isChecked()
-        checkBox_Localizacion = self.checkBox_Localizacion.isChecked()
-        checkBox_EscalaZoom = self.checkBox_EscalaZoom.isChecked()
-        checkBox_ZoomBotones = self.checkBox_ZoomBotones.isChecked()
-        checkBox_ZoomBarrita = self.checkBox_ZoomBarrita.isChecked()
-        checkBox_EscalaGrafica = self.checkBox_EscalaGrafica.isChecked()
+        layers = list(filter(lambda k: '' != k, layers))
+        layers = list(reversed(layers))
 
-        
-
-
-        # Comprobación controles
-        if checkBox_CapasBase:
+        # Controles
+        if self.checkBox_CapasBase.isChecked():
             controls.append('backgroundlayers')
-        if checkBox_Rotacion:
+        if self.checkBox_Rotacion.isChecked():
             controls.append('rotate')
-        if checkBox_Localizacion:
+        if self.checkBox_Localizacion.isChecked():
             controls.append('location')
-        if checkBox_EscalaZoom:
+        if self.checkBox_EscalaZoom.isChecked():
             controls.append('scale')
-        if checkBox_ZoomBotones:
+        if self.checkBox_ZoomBotones.isChecked():
             controls.append('panzoom')
-        if checkBox_ZoomBarrita:
+        if self.checkBox_ZoomBarrita.isChecked():
             controls.append('panzoombar')
-        if checkBox_EscalaGrafica:
+        if self.checkBox_EscalaGrafica.isChecked():
             controls.append('scaleline')
 
-        # Comprobación plugins
-        if checkBox_checkBox_SelectorCapas:
+        # Plugins
+        if self.checkBox_SelectorCapas.isChecked():
             headerImports = """
-                            <link href="https://componentes.idee.es/api-idee/plugins/layerswitcher/layerswitcher-1.0.0.ol.min.css" rel="stylesheet" />
-                            <script type="text/javascript" src="https://componentes.idee.es/api-idee/plugins/layerswitcher/layerswitcher-1.0.0.ol.min.js"></script>
+                <link href="https://componentes.idee.es/api-idee/plugins/layerswitcher/layerswitcher-1.0.0.ol.min.css" rel="stylesheet" />
+                <script type="text/javascript" src="https://componentes.idee.es/api-idee/plugins/layerswitcher/layerswitcher-1.0.0.ol.min.js"></script>
             """
             stringplugin = """
-                            const mp_selectorCapa = new IDEE.plugin.Layerswitcher({
-                                    position: 'TR',
-                                    collapsed: false,
-                                    collapsible: true,
-                                    https: true,
-                                    http: true,
-                                    showCatalog: true,
-                                    displayLabel: false,
-                                    addLayers: true,
-                                    statusLayers: true,
-                                    modeSelectLayers: 'eyes', // opciones: 'eyes', 'radio'
-                                    isMoveLayers: true,
-                                    tools: ['transparency', 'legend', 'zoom', 'information', 'style', 'delete']
-                                });
-
-                            mapajs.addPlugin(mp_selectorCapa);
-                           """
+                const mp_selectorCapa = new IDEE.plugin.Layerswitcher({
+                        position: 'TR',
+                        collapsed: false,
+                        collapsible: true,
+                        https: true,
+                        http: true,
+                        showCatalog: true,
+                        displayLabel: false,
+                        addLayers: true,
+                        statusLayers: true,
+                        modeSelectLayers: 'eyes',
+                        isMoveLayers: true,
+                        tools: ['transparency', 'legend', 'zoom', 'information', 'style', 'delete']
+                    });
+                mapajs.addPlugin(mp_selectorCapa);
+            """
             pluginImports.append(headerImports)
             plugins.append(stringplugin)
 
-        
         extentQGIS = iface.mapCanvas().extent()
         CRSQGIS = QgsProject.instance().crs()
         ct = QgsCoordinateTransform(CRSQGIS, QgsCoordinateReferenceSystem('EPSG:3857'), QgsProject.instance())
         bounds_crs = ct.transformBoundingBox(extentQGIS)
-        bbox = [ bounds_crs.xMinimum() , bounds_crs.yMinimum() , bounds_crs.xMaximum() , bounds_crs.yMaximum() ]
-        
+        bbox = [bounds_crs.xMinimum(), bounds_crs.yMinimum(), bounds_crs.xMaximum(), bounds_crs.yMaximum()]
+
         with open(fileJS, 'w') as filetowrite:
-            filetowrite.write( self.CreateJS(bbox, layers, controls, plugins) )
+            filetowrite.write(self.CreateJS(bbox, layers, controls, plugins))
 
         with open(fileCSS, 'w') as filetowrite:
-            filetowrite.write( self.CreateCSS() )
+            filetowrite.write(self.CreateCSS())
 
         with open(fileMap, 'w') as filetowrite:
-            filetowrite.write( self.CreateHTML(pluginImports, checkBox_ComparacionMapas) )
+            filetowrite.write(self.CreateHTML(pluginImports, checkBox_ComparacionMapas))
 
-        webbrowser.open(fileMap,new=2)
-        self.close ()
+        webbrowser.open(fileMap, new=2)
+        self.close()
         return
 
+    # --- Refactorización de JSONLayer2StringLayer ---
+
     def JSONLayer2StringLayer(self, layer):
-
-        def removeSpaces(txt):
-            return '"'.join(it if i % 2 else ''.join(it.split())
-                            for i, it in enumerate(txt.split('"')))
-        
-        def toLocalGeoJSON(layer, layerGJSON, APICNIGStyle):
-            if type(APICNIGStyle) != list:
-                stringLayer="""
-                                var js_{name} = document.createElement("script");
-                                js_{name}.type = "text/javascript";
-                                js_{name}.async = false;
-                                js_{name}.src = ".{sourceFolder}/{file}";
-                                document.head.appendChild(js_{name});
-                                js_{name}.addEventListener('load', () => {{
-                                
-                                    mapajs.addLayers(
-                                        new IDEE.layer.GeoJSON({{
-                                                source: {source}, 
-                                                name: '{name}',
-                                                legend: "{name}",
-                                                extract: true,
-                                            }}, {{
-                                            // aplica un estilo a la capa
-                                                style: {APICNIGStyle},
-                                                visibility: {visible} // capa no visible en el mapa
-                                            }}, {{
-                                                opacity: 1 // aplica opacidad a la capa
-                                            }})
-                                    );
-
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-
-                                }});
-                                """.format(
-                                    sourceFolder = layer['sourceFolder'],
-                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
-                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    visible = str(layer['visible']).lower(),
-                                    layerGJSON=layerGJSON,
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                )
-            
-            else:
-                stringLayer="""
-                                var js_{name} = document.createElement("script");
-                                js_{name}.type = "text/javascript";
-                                js_{name}.async = false;
-                                js_{name}.src = ".{sourceFolder}/{file}";
-                                document.head.appendChild(js_{name});
-                                js_{name}.addEventListener('load', () => {{
-                                    
-                                    {stylesList}
-
-                                    mapajs.addLayers(
-                                        new IDEE.layer.GeoJSON({{
-                                                source: {source}, 
-                                                name: '{name}',
-                                                legend: "{name}",
-                                                extract: true,
-                                            }}, {{
-                                            // aplica un estilo a la capa
-                                                style: {APICNIGStyle},
-                                                visibility: {visible} // capa no visible en el mapa
-                                            }}, {{
-                                                opacity: 1 // aplica opacidad a la capa
-                                            }})
-                                    );
-
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-
-                                }});
-                                """.format(
-                                    stylesList= APICNIGStyle[1],
-                                    sourceFolder = layer['sourceFolder'],
-                                    file = layer['nameLegend'].replace(" ","").replace("—","_")+'.js',
-                                    source = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    name = layer['nameLegend'].replace(" ","").replace("—","_"),
-                                    visible = str(layer['visible']).lower(),
-                                    layerGJSON=layerGJSON,
-                                    APICNIGStyle=APICNIGStyle[0],
-                                    zindex = layer['zIndex'],
-                                )
-            
-
-            
-            return stringLayer
-        
-        stringLayer = ''
-
-        if layer['layerSourceType'] == 'XYZ':
-            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
-
-            if urlURI:
-                url = urlURI.split('=')[1]
-                url = url.replace('%7B','{')
-                url = url.replace('%7D','}')
-
-            stringLayer="""
-                                mapajs.addXYZ(
-                                    new IDEE.layer.XYZ({{
-                                        url: '{url}',
-                                        name: '{name}',
-                                        visibility: {visible},
-                                        legend: '{name}',
-                                    }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    zindex = layer['zIndex'],
-
-                                )
-
-        elif layer['layerSourceType'] == 'TMS':
-            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
-
-            if urlURI:
-                url = urlURI.split('=')[1]
-                url = url.replace('%7B','{')
-                url = url.replace('%7D','}')
-
-            stringLayer="""
-                                mapajs.addTMS(
-                                    new IDEE.layer.TMS({{
-                                        url: '{url}',
-                                        name: '{name}',
-                                        visibility: {visible},
-                                        legend: '{name}',
-                                    }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    zindex = layer['zIndex'],
-
-                                )
-
-        elif layer['layerSourceType'] == 'GeoTIFF':
-            urlURI = layer['dataSourceUri']
-
-            if urlURI:
-                url = urlURI.replace("/vsicurl/","")
-
-            stringLayer="""
-                                mapajs.addLayers(
-                                    new IDEE.layer.GeoTIFF({{
-                                        url: '{url}',
-                                        name: '{name}',
-                                        visibility: {visible},
-                                        legend: '{name}',
-                                    }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    zindex = layer['zIndex'],
-
-                                )
-
-
-        elif layer['layerSourceType'] == 'WMTS':
-            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
-            formatURI = list(filter( lambda k: 'format=' in k, layer['dataSourceUri'].split('&') ))[0]
-            layerURI = list(filter( lambda k: 'layers=' in k, layer['dataSourceUri'].split('&') ))[0]
-            stylesURI = list(filter( lambda k: 'styles=' in k, layer['dataSourceUri'].split('&') ))[0]
-
-            if urlURI:
-                url = urlURI.split('=')[1]
-            if formatURI:
-                formatWMTS = formatURI.split('=')[1]
-            if layerURI:
-                layerWMTS = layerURI.split('=')[1]
-            if stylesURI:
-                styleWMTS = stylesURI.split('=')[1]
-
-            stringLayer="""
-                                mapajs.addWMTS(
-                                    new IDEE.layer.WMTS({{
-                                        url: '{url}',
-                                        name: "{layerWMTS}",
-                                        legend: "{name}",
-                                        matrixSet: 'GoogleMapsCompatible',
-                                        visibility: {visible},
-                                        }},
-                                        {{
-                                            format: '{formatWMTS}'
-                                        }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    formatWMTS=formatWMTS,
-                                    layerWMTS=layerWMTS,
-                                    zindex = layer['zIndex'],
-                                )
-
-        elif layer['layerSourceType'] == 'WMS':
-            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
-            formatURI = list(filter( lambda k: 'format=' in k, layer['dataSourceUri'].split('&') ))[0]
-            layerURI = list(filter( lambda k: 'layers=' in k, layer['dataSourceUri'].split('&') ))[0]
-            if 'styles=' in layer['dataSourceUri']:
-                stylesURI = list(filter( lambda k: 'styles=' in k, layer['dataSourceUri'].split('&') ))[0]
-            else:
-                stylesURI = None
-
-            if urlURI:
-                url = urlURI.split('=')[1]
-            if formatURI:
-                formatWMS = formatURI.split('=')[1]
-            if layerURI:
-                layerWMS = layerURI.split('=')[1]
-            if stylesURI:
-                styleWMS = stylesURI.split('=')[1]
-
-            stringLayer="""
-                                mapajs.addWMS(
-                                     new IDEE.layer.WMS({{
-                                            url: '{url}',
-                                            name: "{layerWMS}",
-                                            legend: "{name}",
-                                            tiled: false,
-                                            visibility: {visible},
-                                        }}, 
-                                        {{
-                                            format: '{formatWMS}'
-                                        }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    formatWMS=formatWMS,
-                                    layerWMS=layerWMS,
-                                    zindex = layer['zIndex'],
-                                )
-        
-        elif layer['layerSourceType'] == 'OGC WFS (Web Feature Service)':
-
-            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split(' ') ))[0]
-            layerURI = list(filter( lambda k: 'typename=' in k, layer['dataSourceUri'].split(' ') ))[0]
-
-            if urlURI:
-                url = urlURI.split('=')[1]
-            if layerURI:
-                layerWFS = layerURI.split('=')[1]
-
-            APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-
-            if type(APICNIGStyle) != list:
-                stringLayer="""
-                                mapajs.addWFS(
-                                     new IDEE.layer.WFS({{
-                                            url: {url}, 
-                                            name: {layerWFS},
-                                            legend: "{name}",
-                                            extract: true,
-                                        }}, {{
-                                        // aplica un estilo a la capa
-                                            style: {APICNIGStyle},
-                                            visibility: {visible} // capa no visible en el mapa
-                                        }}, {{
-                                            opacity: 1 // aplica opacidad a la capa
-                                        }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    layerWFS=layerWFS,
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                )
-        
-            else:
-                stringLayer="""
-                                {stylesList}
-
-                                mapajs.addWFS(
-                                     new IDEE.layer.WFS({{
-                                            url: {url}, 
-                                            name: {layerWFS},
-                                            legend: "{name}",
-                                            extract: true,
-                                        }}, {{
-                                        // aplica un estilo a la capa
-                                            style: {APICNIGStyle},
-                                            visibility: {visible} // capa no visible en el mapa
-                                        }}, {{
-                                            opacity: 1 // aplica opacidad a la capa
-                                        }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    layerWFS=layerWFS,
-                                    stylesList= APICNIGStyle[1],
-                                    APICNIGStyle=APICNIGStyle[0],
-                                    zindex = layer['zIndex'],
-                                )
-        
-        elif layer['layerSourceType'] == 'GeoJSON':
-
-            if 'http' in layer['dataSourceUri']:
-                urlURI = layer['dataSourceUri'].split('|')[0]
-                layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
-
-                if urlURI:
-                    url = urlURI.replace('/vsicurl/','')
-                if layerURI:
-                    layerGJSON = layerURI.split('=')[1]
-                
-                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-
-                if type(APICNIGStyle) != list:
-                    stringLayer="""
-
-                                mapajs.addLayers(
-                                     new IDEE.layer.GeoJSON({{
-                                            url: '{url}', 
-                                            name: '{name}',
-                                            legend: "{name}",
-                                            extract: true,
-                                        }}, {{
-                                        // aplica un estilo a la capa
-                                            style: {APICNIGStyle},
-                                            visibility: {visible} // capa no visible en el mapa
-                                        }}, {{
-                                            opacity: 1 // aplica opacidad a la capa
-                                        }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    layerGJSON=layerGJSON,
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                    
-                                )
-
-                else:
-                    stringLayer="""
-
-                                {stylesList}
-
-                                mapajs.addLayers(
-                                     new IDEE.layer.GeoJSON({{
-                                            url: '{url}', 
-                                            name: '{name}',
-                                            legend: "{name}",
-                                            extract: true,
-                                        }}, {{
-                                        // aplica un estilo a la capa
-                                            style: {APICNIGStyle},
-                                            visibility: {visible} // capa no visible en el mapa
-                                        }}, {{
-                                            opacity: 1 // aplica opacidad a la capa
-                                        }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    layerGJSON=layerGJSON,
-                                    stylesList= APICNIGStyle[1],
-                                    APICNIGStyle=APICNIGStyle[0],
-                                    zindex = layer['zIndex'],
-                                )
-            
-            else:
-                # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
-                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'   
-                options = []
-                options.append("COORDINATE_PRECISION=" + str(6))
-                e, err = QgsVectorFileWriter.writeAsVectorFormat(layer['QGISlayer'], 
-                                                                 pathh + '_tmp',
-                                                                 "utf-8", 
-                                                                 QgsCoordinateReferenceSystem("EPSG:4326"), 
-                                                                 'GeoJson',
-                                                                 0, 
-                                                                 layerOptions=options)
-                if e == QgsVectorFileWriter.NoError:
-                    with open(pathh, mode="w", encoding="utf8") as f:
-                        f.write("var %s = " % (layer['nameLegend'].replace(" ","").replace("—","_")))
-                        with open(pathh+ '_tmp', encoding="utf8") as tmpFile:
-                            for line in tmpFile:
-                                line = line.strip("\n\t ")
-                                line = removeSpaces(line)
-                                f.write(line)
-
-                    os.remove(pathh + '_tmp')
-                
-                else:
-                    QgsMessageLog.logMessage(
-                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
-                        "QGIS2APIIDEE",
-                        level=Qgis.Critical)
-                    return
-                
-                if 'layername=' in layer['dataSourceUri']:
-                    layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
-                else:
-                    layerURI = False
-
-                if layerURI:
-                    layerGJSON = layerURI.split('=')[1]
-                else:
-                    layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
-
-                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-
-                stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
-                            
-        elif layer['layerSourceType'] == 'Memory storage':
-            # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
-                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'
-                options = []
-                options.append("COORDINATE_PRECISION=" + str(6))
-                e, err = QgsVectorFileWriter.writeAsVectorFormat(layer['QGISlayer'], 
-                                                                 pathh + '_tmp',
-                                                                 "utf-8", 
-                                                                 QgsCoordinateReferenceSystem("EPSG:4326"), 
-                                                                 'GeoJson',
-                                                                 0, 
-                                                                 layerOptions=options)
-                if e == QgsVectorFileWriter.NoError:
-                    with open(pathh, mode="w", encoding="utf8") as f:
-                        f.write("var %s = " % (layer['nameLegend'].replace(" ","").replace("—","_")))
-                        with open(pathh+ '_tmp', encoding="utf8") as tmpFile:
-                            for line in tmpFile:
-                                line = line.strip("\n\t ")
-                                line = removeSpaces(line)
-                                f.write(line)
-
-                    os.remove(pathh + '_tmp')
-                else:
-                    QgsMessageLog.logMessage(
-                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
-                        "QGIS2APIIDEE",
-                        level=Qgis.Critical)
-                    return
-                
-                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-                layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
-                stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
-
-        elif layer['layerSourceType'] == 'OGC API - Features':
-            
-            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split(' ') ))[0]
-            layerURI = list(filter( lambda k: 'typename=' in k, layer['dataSourceUri'].split(' ') ))[0]
-
-            if urlURI:
-                url = urlURI.split('=')[1][:-1]+"collections/'"
-            if layerURI:
-                layerOGCAPI_Features = layerURI.split('=')[1]
-
-            APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-
-            if type(APICNIGStyle) != list:
-                stringLayer="""
-                                mapajs.addOGCAPIFeatures(
-                                     new IDEE.layer.OGCAPIFeatures({{
-                                            url: {url}, 
-                                            name: {layerOGCAPI_Features},
-                                            legend: "{name}",
-                                            extract: true,
-                                            limit: 100
-                                        }}, {{
-                                        // aplica un estilo a la capa
-                                            style: {APICNIGStyle},
-                                            visibility: {visible} // capa no visible en el mapa
-                                        }}, {{
-                                            opacity: 1 // aplica opacidad a la capa
-                                        }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    layerOGCAPI_Features=layerOGCAPI_Features,
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-            )
-            else:
-                stringLayer="""
-                                {stylesList}
-
-                                mapajs.addOGCAPIFeatures(
-                                     new IDEE.layer.OGCAPIFeatures({{
-                                            url: {url}, 
-                                            name: {layerOGCAPI_Features},
-                                            legend: "{name}",
-                                            extract: true,
-                                            limit: 100
-                                        }}, {{
-                                        // aplica un estilo a la capa
-                                            style: {APICNIGStyle},
-                                            visibility: {visible} // capa no visible en el mapa
-                                        }}, {{
-                                            opacity: 1 // aplica opacidad a la capa
-                                        }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    layerOGCAPI_Features=layerOGCAPI_Features,
-                                    stylesList= APICNIGStyle[1],
-                                    APICNIGStyle=APICNIGStyle[0],
-                                    zindex = layer['zIndex'],
-            )
-            
-        elif layer['layerSourceType'] == 'LIBKML':
-
-            if 'http' in layer['dataSourceUri']:
-
-                if 'http' in layer['dataSourceUri']:
-                    urlURI = layer['dataSourceUri'].split('|')[0]
-                    layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
-
-                    if urlURI:
-                        url = urlURI.replace('/vsicurl/','')
-                    if layerURI:
-                        layerGJSON = layerURI.split('=')[1]
-
-                    stringLayer="""
-                                    mapajs.addKML(
-                                        new IDEE.layer.KML({{
-                                                url: '{url}', 
-                                                name: "{name}",
-                                                legend: "{name}",
-                                                // layers: "{layerGJSON}",
-                                                extract: true,
-                                            }}, {{
-                                                visibility: {visible} // capa no visible en el mapa
-                                            }}, {{
-                                                opacity: 1 // aplica opacidad a la capa
-                                            }})
-                                    );
-
-                                    mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                    """.format(
-                                        url = url,
-                                        name = layer['nameLegend'],
-                                        visible = str(layer['visible']).lower(),
-                                        layerGJSON=layerGJSON,
-                                        zindex = layer['zIndex'],
-                                    )
-            
-            else:
-                # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
-                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'
-                options = []
-                options.append("COORDINATE_PRECISION=" + str(6))
-                e, err = QgsVectorFileWriter.writeAsVectorFormat(layer['QGISlayer'], 
-                                                                 pathh + '_tmp',
-                                                                 "utf-8", 
-                                                                 QgsCoordinateReferenceSystem("EPSG:4326"), 
-                                                                 'GeoJson',
-                                                                 0, 
-                                                                 layerOptions=options)
-                if e == QgsVectorFileWriter.NoError:
-                    with open(pathh, mode="w", encoding="utf8") as f:
-                        f.write("var %s = " % ( layer['nameLegend'].replace(" ","").replace("—","_") ))
-                        with open(pathh+ '_tmp', encoding="utf8") as tmpFile:
-                            for line in tmpFile:
-                                line = line.strip("\n\t ")
-                                line = removeSpaces(line)
-                                f.write(line)
-
-                    os.remove(pathh + '_tmp')
-                else:
-                    QgsMessageLog.logMessage(
-                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
-                        "QGIS2APIIDEE",
-                        level=Qgis.Critical)
-                    return
-                
-                if 'layername=' in layer['dataSourceUri']:
-                    layerURI = list(filter( lambda k: 'layername=' in k, layer['dataSourceUri'].split('|') ))[0]
-                else:
-                    layerURI = False
-
-                if layerURI:
-                    layerGJSON = layerURI.split('=')[1]
-                else:
-                    layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
-                
-                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-               
-                stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
-                
-        elif layer['layerSourceType'] == 'MVT':
-            # print(layer['dataSourceUri'])
-            # print(layer['dataSourceUri'].split('&') )
-            # print(list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0])
-            urlURI = list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0]
-
-            if urlURI:
-                url = urlURI.split('=')[1]
-                url = url.replace('%7B','{')
-                url = url.replace('%7D','}')
-
-            
-            APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
-
-            stringLayer="""
-                                mapajs.addLayers(
-                                    new IDEE.layer.MVT({{
-                                        url: '{url}',
-                                        name: '{name}',
-                                        extract: true,
-                                        visibility: {visible},
-                                        legend: "{name}",
-                                    }},{{
-                                        // aplica un estilo a la capa
-                                        style: {APICNIGStyle},
-                                    }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = url,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    APICNIGStyle=APICNIGStyle,
-                                    zindex = layer['zIndex'],
-                                    )
-
-        elif layer['layerSourceType'] == 'MapLibre':
-            # print(layer['dataSourceUri'])
-            # print(layer['dataSourceUri'].split('&') )
-            # print(list(filter( lambda k: 'url=' in k, layer['dataSourceUri'].split('&') ))[0])
-            urlJSONURI = list(filter( lambda k: 'styleUrl=' in k, layer['dataSourceUri'].split('&') ))[0]
-
-            jsonURL = urlJSONURI.split('=')[1]
-            stringLayer="""
-                                mapajs.addLayers(
-                                    new IDEE.layer.MapLibre({{
-                                        url: '{url}',
-                                        name: '{name}',
-                                        extract: true,
-                                        visibility: {visible},
-                                        legend: "{name}",
-                                    }})
-                                );
-
-                                mapajs.getLayers().filter( (layer) => layer.legend == "{name}" )[0].setZIndex({zindex})
-                                """.format(
-                                    url = jsonURL,
-                                    name = layer['nameLegend'],
-                                    visible = str(layer['visible']).lower(),
-                                    zindex = layer['zIndex'],
-                                )
-
-
+        tipo = layer['layerSourceType']
+        name = layer['nameLegend'].replace(" ", "").replace("—", "_")
+        uri = layer['dataSourceUri']
+
+        if tipo == 'XYZ':
+            url = urllib.parse.unquote(self._get_url_param(uri, 'url'))
+            return self._layer_xyz(url, name, layer)
+        elif tipo == 'TMS':
+            url = urllib.parse.unquote(self._get_url_param(uri, 'url'))
+            return self._layer_tms(url, name, layer)
+        elif tipo == 'GeoTIFF':
+            url = uri.replace("/vsicurl/", "")
+            return self._layer_geotiff(url, name, layer)
+        elif tipo == 'WMTS':
+            return self._layer_wmts(uri, name, layer)
+        elif tipo == 'WMS':
+            return self._layer_wms(uri, name, layer)
+        elif tipo == 'OGC WFS (Web Feature Service)':
+            return self._layer_wfs(uri, name, layer)
+        elif tipo == 'GeoJSON':
+            return self._layer_geojson(layer, name)
+        elif tipo == 'Memory storage':
+            return self._layer_memory(layer, name)
+        elif tipo == 'OGC API - Features':
+            return self._layer_ogc_api_features(uri, name, layer)
+        elif tipo == 'LIBKML':
+            return self._layer_libkml(layer, name)
+        elif tipo == 'MVT':
+            url = self._get_url_param(uri, 'url')
+            return self._layer_mvt(url, name, layer)
+        elif tipo == 'MapLibre':
+            url = self._get_url_param(uri, 'styleUrl')
+            return self._layer_maplibre(url, name, layer)
         elif layer['QGISlayer'].type() == QgsMapLayer.VectorLayer:
-            # Guardar la capa vectorial como geojson en local y hacerle el trapis para que pueda leerlo en local como objeto JS
-                pathh = layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js'
-                options = []
-                options.append("COORDINATE_PRECISION=" + str(6))
-                e, err = QgsVectorFileWriter.writeAsVectorFormat(layer['QGISlayer'], 
-                                                                 pathh + '_tmp',
-                                                                 "utf-8", 
-                                                                 QgsCoordinateReferenceSystem("EPSG:4326"), 
-                                                                 'GeoJson',
-                                                                 0, 
-                                                                 layerOptions=options)
-                if e == QgsVectorFileWriter.NoError:
-                    with open(pathh, mode="w", encoding="utf8") as f:
-                        f.write("var %s = " % ( layer['nameLegend'].replace(" ","").replace("—","_") ))
-                        with open(pathh+ '_tmp', encoding="utf8") as tmpFile:
-                            for line in tmpFile:
-                                line = line.strip("\n\t ")
-                                line = removeSpaces(line)
-                                f.write(line)
+            return self._layer_vector(layer, name)
+        else:
+            return ''
 
-                    os.remove(pathh + '_tmp')
-                else:
-                    QgsMessageLog.logMessage(
-                        "Could not write json file {}: {}".format(layer['exportFolderSources']+'/'+layer['nameLegend'].replace(" ","").replace("—","_")+'.js', err),
-                        "QGIS2APIIDEE",
-                        level=Qgis.Critical)
-                    return
-     
-                layerGJSON=layer['nameLegend'].replace(" ","").replace("—","_")
+    # --- Métodos por tipo de capa ---
 
-                APICNIGStyle = self.QGISStyle2APICNIGStyle(layer['nameLegend'])
+    def _layer_xyz(self, url, name, layer):
+        return f"""
+            mapajs.addXYZ(
+                new IDEE.layer.XYZ({{
+                    url: '{url}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
 
-                stringLayer = toLocalGeoJSON(layer, layerGJSON, APICNIGStyle)
+    def _layer_tms(self, url, name, layer):
+        return f"""
+            mapajs.addTMS(
+                new IDEE.layer.TMS({{
+                    url: '{url}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
 
-        return stringLayer
+    def _layer_geotiff(self, url, name, layer):
+        return f"""
+            mapajs.addGeoTIFF(
+                new IDEE.layer.GeoTIFF({{
+                    url: '{url}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_wmts(self, uri, name, layer):
+        return f"""
+            mapajs.addWMTS(
+                new IDEE.layer.WMTS({{
+                    url: '{uri}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_wms(self, uri, name, layer):
+        return f"""
+            mapajs.addWMS(
+                new IDEE.layer.WMS({{
+                    url: '{uri}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_wfs(self, uri, name, layer):
+        return f"""
+            mapajs.addWFS(
+                new IDEE.layer.WFS({{
+                    url: '{uri}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_geojson(self, layer, name):
+        # Aquí puedes añadir la lógica para exportar la capa como GeoJSON si lo necesitas
+        return f"""
+            mapajs.addGeoJSON(
+                new IDEE.layer.GeoJSON({{
+                    url: '{layer['dataSourceUri']}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_memory(self, layer, name):
+        # Aquí puedes añadir la lógica para capas en memoria
+        return f"""
+            // Capa en memoria: {name}
+        """
+
+    def _layer_ogc_api_features(self, uri, name, layer):
+        return f"""
+            mapajs.addOGCAPIFeatures(
+                new IDEE.layer.OGCAPIFeatures({{
+                    url: '{uri}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_libkml(self, layer, name):
+        return f"""
+            mapajs.addKML(
+                new IDEE.layer.KML({{
+                    url: '{layer['dataSourceUri']}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_mvt(self, url, name, layer):
+        return f"""
+            mapajs.addMVT(
+                new IDEE.layer.MVT({{
+                    url: '{url}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_maplibre(self, url, name, layer):
+        return f"""
+            mapajs.addMapLibre(
+                new IDEE.layer.MapLibre({{
+                    styleUrl: '{url}',
+                    name: '{name}',
+                    visibility: {str(layer['visible']).lower()},
+                    legend: '{name}',
+                }})
+            );
+            mapajs.getLayers().filter((layer) => layer.legend == "{name}")[0].setZIndex({layer['zIndex']})
+        """
+
+    def _layer_vector(self, layer, name):
+        # Aquí puedes añadir la lógica para exportar la capa vectorial como GeoJSON
+        return f"""
+            // Capa vectorial: {name}
+        """
+
 
     def QGISStyle2APICNIGStyle(self, qgisLayerLegend):
 
