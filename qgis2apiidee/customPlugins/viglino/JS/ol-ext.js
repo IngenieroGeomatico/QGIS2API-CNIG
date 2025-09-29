@@ -401,7 +401,7 @@ ol.ext.TextStreamReader.prototype.setFile = function(file) {
   this.fileSize_ = (this.file_.size - 1);
   this.rewind();
 }
-/** Sets the file position indicator to the beginning of the file streaIDEE.
+/** Sets the file position indicator to the beginning of the file stream.
  */
 ol.ext.TextStreamReader.prototype.rewind = function() {
   this.chunk_ = 0;
@@ -3612,11 +3612,11 @@ ol.legend.Legend = class ollegendLegend extends ol.Object {
     var feature = item.feature
     if (!feature && typeGeom) {
       if (/Point/.test(typeGeom)){
-        feature = new ol.Feature(new ol.geoIDEE.Point([0, 0]))
+        feature = new ol.Feature(new ol.geom.Point([0, 0]))
       } else if (/LineString/.test(typeGeom)) {
-        feature = new ol.Feature(new ol.geoIDEE.LineString([0, 0]))
+        feature = new ol.Feature(new ol.geom.LineString([0, 0]))
       } else {
-        feature = new ol.Feature(new ol.geoIDEE.Polygon([[0, 0]]))
+        feature = new ol.Feature(new ol.geom.Polygon([[0, 0]]))
       }
       if (item.properties) {
         feature.setProperties(item.properties)
@@ -3686,25 +3686,25 @@ ol.legend.Legend = class ollegendLegend extends ol.Object {
       ctx.save()
       var geom
       switch (typeGeom) {
-        case ol.geoIDEE.Point:
+        case ol.geom.Point:
         case 'Point':
         case 'MultiPoint': {
-          geom = new ol.geoIDEE.Point([cx, cy])
+          geom = new ol.geom.Point([cx, cy])
           break
         }
-        case ol.geoIDEE.LineString:
+        case ol.geom.LineString:
         case 'LineString':
         case 'MultiLineString': {
           // Clip lines
           ctx.rect(item.margin * ratio, 0, size[0] * ratio, canvas.height)
           ctx.clip()
-          geom = new ol.geoIDEE.LineString([[cx - sx, cy], [cx + sx, cy]])
+          geom = new ol.geom.LineString([[cx - sx, cy], [cx + sx, cy]])
           break
         }
-        case ol.geoIDEE.Polygon:
+        case ol.geom.Polygon:
         case 'Polygon':
         case 'MultiPolygon': {
-          geom = new ol.geoIDEE.Polygon([[[cx - sx, cy - sy], [cx + sx, cy - sy], [cx + sx, cy + sy], [cx - sx, cy + sy], [cx - sx, cy - sy]]])
+          geom = new ol.geom.Polygon([[[cx - sx, cy - sy], [cx + sx, cy - sy], [cx + sx, cy + sy], [cx - sx, cy + sy], [cx - sx, cy - sy]]])
           break
         }
       }
@@ -5514,7 +5514,7 @@ ol.control.SearchPhoton = class olcontrolSearchPhoton extends ol.control.SearchJ
     // Handle position proirity
     if (this.get('position')) {
       var view = this.getMap().getView();
-      var pt = new ol.geoIDEE.Point(view.getCenter());
+      var pt = new ol.geom.Point(view.getCenter());
       pt = (pt.transform(view.getProjection(), "EPSG:4326")).getCoordinates();
       data.lon = pt[0];
       data.lat = pt[1];
@@ -5848,10 +5848,10 @@ ol.control.SearchGeoportail = class olcontrolSearchGeoportail extends ol.control
             var parser = new DOMParser();
             var xmlDoc = parser.parseFromString(xml, "text/xml");
             var com = xmlDoc.getElementsByTagName('GeocodedAddress')[0];
-            var coord = coIDEE.getElementsByTagName('gml:Point')[0].textContent.trim().split(' ');
+            var coord = com.getElementsByTagName('gml:Point')[0].textContent.trim().split(' ');
             f.x = Number(coord[1]);
             f.y = Number(coord[0]);
-            var place = coIDEE.getElementsByTagName('Place');
+            var place = com.getElementsByTagName('Place');
             for (var i = 0; i < place.length; i++) {
               switch (place[i].attributes.type.value) {
                 case 'Nature':
@@ -8011,11 +8011,11 @@ ol.control.Dialog = class olcontrolDialog extends ol.control.Control {
    */
   setTitle(title) {
     var form = this.element.querySelector('form');
-    forIDEE.querySelector('h2').innerText = title || '';
+    form.querySelector('h2').innerText = title || '';
     if (title) {
-      forIDEE.classList.add('ol-title');
+      form.classList.add('ol-title');
     } else {
-      forIDEE.classList.remove('ol-title');
+      form.classList.remove('ol-title');
     }
   }
   /** Set the dialog content
@@ -8054,23 +8054,23 @@ ol.control.Dialog = class olcontrolDialog extends ol.control.Control {
     // Content
     if (options.content !== undefined) {
       if (options.content instanceof Element)
-        ol.ext.element.setHTML(forIDEE.querySelector('.ol-content'), '');
-      ol.ext.element.setHTML(forIDEE.querySelector('.ol-content'), options.content || '');
+        ol.ext.element.setHTML(form.querySelector('.ol-content'), '');
+      ol.ext.element.setHTML(form.querySelector('.ol-content'), options.content || '');
     }
     // Title
     this.setTitle(options.title);
     // Closebox
     if (options.closeBox || (this.get('closeBox') && options.closeBox !== false)) {
-      forIDEE.classList.add('ol-closebox');
+      form.classList.add('ol-closebox');
     } else {
-      forIDEE.classList.remove('ol-closebox');
+      form.classList.remove('ol-closebox');
     }
     // Buttons
     var buttons = this.element.querySelector('.ol-buttons');
     buttons.innerHTML = '';
     var btn = options.buttons || this.get('buttons');
     if (btn) {
-      forIDEE.classList.add('ol-button');
+      form.classList.add('ol-button');
       for (var i in btn) {
         ol.ext.element.create('INPUT', {
           type: (i === 'submit' ? 'submit' : 'button'),
@@ -8080,7 +8080,7 @@ ol.control.Dialog = class olcontrolDialog extends ol.control.Control {
         });
       }
     } else {
-      forIDEE.classList.remove('ol-button');
+      form.classList.remove('ol-button');
     }
   }
   /** Get dialog content element
@@ -8392,7 +8392,7 @@ ol.control.EditBar = class olcontrolEditBar extends ol.control.Bar {
             if (geometry)
               geometry.setCoordinates(coordinates)
             else
-              geometry = new ol.geoIDEE.LineString(coordinates)
+              geometry = new ol.geom.LineString(coordinates)
             this.nbpts = geometry.getCoordinates().length
             return geometry
           }
@@ -8441,7 +8441,7 @@ ol.control.EditBar = class olcontrolEditBar extends ol.control.Bar {
             if (geometry)
               geometry.setCoordinates([coordinates[0].concat([coordinates[0][0]])])
             else
-              geometry = new ol.geoIDEE.Polygon(coordinates)
+              geometry = new ol.geom.Polygon(coordinates)
             return geometry
           }
         })
@@ -9144,7 +9144,7 @@ ol.control.FeatureList.prototype.getColumns = function(features) {
     features.forEach(function (f) {
       // Get properties but geom
       Object.keys(f.getProperties()).forEach(function(p) {
-        if (!(f.get(p) instanceof ol.geoIDEE.Geometry)) {
+        if (!(f.get(p) instanceof ol.geom.Geometry)) {
           col[p] = true;
         }
       })
@@ -9465,7 +9465,7 @@ ol.control.GeoBookmark = class olcontrolGeoBookmark extends ol.control.Control {
   /** Set bookmarks
    * @param {} bmark a list of bookmarks, default retreave in the localstorage
    * @example
-  bIDEE.setBookmarks({
+  bm.setBookmarks({
     "Paris": {pos:_ol_proj_.transform([2.351828, 48.856578], 'EPSG:4326', 'EPSG:3857'), zoom:11, permanent: true },
     "London": {pos:_ol_proj_.transform([-0.1275,51.507222], 'EPSG:4326', 'EPSG:3857'), zoom:12}
   });
@@ -9488,9 +9488,9 @@ ol.control.GeoBookmark = class olcontrolGeoBookmark extends ol.control.Control {
       li.setAttribute('data-name', b);
       li.addEventListener('click', function (e) {
         var bm = JSON.parse(e.target.getAttribute("data-bookmark"));
-        this.getMap().getView().setCenter(bIDEE.pos);
-        this.getMap().getView().setZoom(bIDEE.zoom);
-        this.getMap().getView().setRotation(bIDEE.rot || 0);
+        this.getMap().getView().setCenter(bm.pos);
+        this.getMap().getView().setZoom(bm.zoom);
+        this.getMap().getView().setRotation(bm.rot || 0);
         this.element.classList.add('ol-collapsed')
         this.dispatchEvent({ type: 'select', name: e.target.getAttribute("data-name"), bookmark: bm });
       }.bind(this));
@@ -10056,7 +10056,7 @@ ol.control.Graticule = class olcontrolGraticule extends ol.control.CanvasBase {
         if (p[1] > 0 && p1[1] < 0)
           txt.top.push([x, p])
         if (p[1] > h && p1[1] < h)
-          txt.bottoIDEE.push([x, p])
+          txt.bottom.push([x, p])
         p = p1
       }
     }
@@ -10143,7 +10143,7 @@ ol.control.Graticule = class olcontrolGraticule extends ol.control.CanvasBase {
         ctx.fill()
         ctx.stroke()
       }
-      for (i = 1; i < txt.bottoIDEE.length; i++) {
+      for (i = 1; i < txt.bottom.length; i++) {
         ctx.beginPath()
         ctx.rect(txt.bottom[i - 1][1][0], h - borderWidth - margin, txt.bottom[i][1][0] - txt.bottom[i - 1][1][0], borderWidth)
         ctx.fillStyle = Math.round(txt.bottom[i][0] / step) % 2 ? color : fillColor
@@ -11574,7 +11574,7 @@ ol.control.MapZone = class olcontrolMapZone extends ol.control.Control {
           'click': function () {
             element.classList.toggle("ol-collapsed")
             maps.forEach(function (m) {
-              IDEE.updateSize()
+              m.updateSize()
             })
           }.bind(this)
         },
@@ -11593,7 +11593,7 @@ ol.control.MapZone = class olcontrolMapZone extends ol.control.Control {
     // Refresh the maps
     setTimeout(function () {
       maps.forEach(function (m) {
-        IDEE.updateSize()
+        m.updateSize()
       })
     })
   }
@@ -11605,7 +11605,7 @@ ol.control.MapZone = class olcontrolMapZone extends ol.control.Control {
       this.element.classList.remove('ol-collapsed')
       // Force map rendering
       this.getMaps().forEach(function (m) {
-        IDEE.updateSize()
+        m.updateSize()
       })
     } else {
       this.element.classList.add('ol-collapsed')
@@ -11656,7 +11656,7 @@ ol.control.MapZone = class olcontrolMapZone extends ol.control.Control {
         // Get index
         var index = -1
         this._maps.forEach(function (m, i) {
-          if (IDEE.get('zone') === z) {
+          if (m.get('zone') === z) {
             index = i
           }
         })
@@ -12219,9 +12219,9 @@ ol.control.Overview = class olcontrolOverview extends ol.control.Control {
         extent[i][0] = center[0] + x * cos - y * sin
         extent[i][1] = center[1] + x * sin + y * cos
       }
-      f.setGeometry(new ol.geoIDEE.Polygon([extent]))
+      f.setGeometry(new ol.geom.Polygon([extent]))
     } else {
-      f.setGeometry(new ol.geoIDEE.Point(center))
+      f.setGeometry(new ol.geom.Point(center))
     }
     source.addFeature(f)
   }
@@ -12441,20 +12441,20 @@ ol.control.Permalink = class olcontrolPermalink extends ol.control.Control {
       t = hash[i].split("=")
       param[t[0]] = t[1]
     }
-    if (paraIDEE.gh) {
-      var ghash = paraIDEE.gh.split('-')
+    if (param.gh) {
+      var ghash = param.gh.split('-')
       var lonlat = ol.geohash.toLonLat(ghash[0])
-      paraIDEE.lon = lonlat[0]
-      paraIDEE.lat = lonlat[1]
-      paraIDEE.z = ghash[1]
+      param.lon = lonlat[0]
+      param.lat = lonlat[1]
+      param.z = ghash[1]
     }
-    var c = ol.proj.transform([Number(paraIDEE.lon), Number(paraIDEE.lat)], 'EPSG:4326', map.getView().getProjection())
+    var c = ol.proj.transform([Number(param.lon), Number(param.lat)], 'EPSG:4326', map.getView().getProjection())
     if (c[0] && c[1])
       map.getView().setCenter(c)
-    if (paraIDEE.z)
-      map.getView().setZoom(Number(paraIDEE.z))
-    if (paraIDEE.r)
-      map.getView().setRotation(Number(paraIDEE.r))
+    if (param.z)
+      map.getView().setZoom(Number(param.z))
+    if (param.r)
+      map.getView().setRotation(Number(param.r))
     // Reset layers visibility
     function resetLayers(layers) {
       if (!layers)
@@ -12469,9 +12469,9 @@ ol.control.Permalink = class olcontrolPermalink extends ol.control.Control {
         }
       }
     }
-    if (paraIDEE.l) {
+    if (param.l) {
       resetLayers()
-      var l = paraIDEE.l.split("|")
+      var l = param.l.split("|")
       for (i = 0; i < l.length; i++) {
         t = l[i].split(":")
         var li = this.getLayerByLink(t[0])
@@ -13866,14 +13866,14 @@ ol.control.PrintDialog2x = class olcontrolPrintDialog2x extends ol.control.Print
           }
           switch(clip.type) {
             case 'circle': {
-              param = paraIDEE.split(' ')
+              param = param.split(' ')
               clip.radius = parseFloat(param[0]);
               clip.x = parseFloat(param[2]);
               clip.y = parseFloat(param[3]);
               break;
             }
             case 'rect': {
-              param = paraIDEE.split(',')
+              param = param.split(',')
               clip.top = parseFloat(param[0]);
               clip.right = parseFloat(param[1]);
               clip.bottom = parseFloat(param[2]);
@@ -14231,7 +14231,7 @@ ol.control.Profile = class olcontrolProfile extends ol.control.Control {
             })
           }
           var saved = geom || this._geometry[0]
-          var g = new ol.geoIDEE.LineString(this.getSelection(start, e.index))
+          var g = new ol.geom.LineString(this.getSelection(start, e.index))
           this.setGeometry(g, this._geometry[1])
           geom = saved
           this.dispatchEvent({ type: 'zoom', geometry: g, start: start, end: e.index })
@@ -14528,7 +14528,7 @@ ol.control.Profile = class olcontrolProfile extends ol.control.Control {
   }
   /**
    * Set the geometry to draw the profile.
-   * @param {ol.Feature|ol.geoIDEE.Geometry} f the feature.
+   * @param {ol.Feature|ol.geom.Geometry} f the feature.
    * @param {Object=} options
    *  @param {ol.ProjectionLike} [options.projection] feature projection, default projection of the map
    *  @param {string} [options.zunit='m'] 'm' or 'km', default m
@@ -15069,7 +15069,7 @@ ol.control.RoutingGeoportail = class olcontrolRoutingGeoportail extends ol.contr
       search.setInput(e.search.fulltext);
       var f = search.get('feature');
       if (!f) {
-        f = new ol.Feature(new ol.geoIDEE.Point(e.coordinate));
+        f = new ol.Feature(new ol.geom.Point(e.coordinate));
         search.set('feature', f);
         this._source.addFeature(f);
         // Check geometry change
@@ -16036,9 +16036,9 @@ ol.control.SearchGPS = class olcontrolSearchGPS extends ol.control.Search {
     // Value has change
     var onchange = function (e) {
       if (e.target.classList.contains('ol-dms')) {
-        lon.value = (lond.value < 0 ? -1 : 1) * Number(lond.value) + Number(lonIDEE.value) / 60 + Number(lons.value) / 3600;
+        lon.value = (lond.value < 0 ? -1 : 1) * Number(lond.value) + Number(lonm.value) / 60 + Number(lons.value) / 3600;
         lon.value = (lond.value < 0 ? -1 : 1) * Math.round(lon.value * 10000000) / 10000000;
-        lat.value = (latd.value < 0 ? -1 : 1) * Number(latd.value) + Number(latIDEE.value) / 60 + Number(lats.value) / 3600;
+        lat.value = (latd.value < 0 ? -1 : 1) * Number(latd.value) + Number(latm.value) / 60 + Number(lats.value) / 3600;
         lat.value = (latd.value < 0 ? -1 : 1) * Math.round(lat.value * 10000000) / 10000000;
       }
       if (lon.value || lat.value) {
@@ -16051,11 +16051,11 @@ ol.control.SearchGPS = class olcontrolSearchGPS extends ol.control.Search {
         var c = s.replace(/(N|S|E|W)/g, '').split('″');
         c[1] = c[1].trim().split(' ');
         lond.value = (/W/.test(s) ? -1 : 1) * parseInt(c[1][0]);
-        lonIDEE.value = parseInt(c[1][1]);
+        lonm.value = parseInt(c[1][1]);
         lons.value = parseInt(c[1][2]);
         c[0] = c[0].trim().split(' ');
         latd.value = (/W/.test(s) ? -1 : 1) * parseInt(c[0][0]);
-        latIDEE.value = parseInt(c[0][1]);
+        latm.value = parseInt(c[0][1]);
         lats.value = parseInt(c[0][2]);
       }
       this.search();
@@ -16567,7 +16567,7 @@ ol.control.SearchGeoportailParcelle = class olcontrolSearchGeoportailParcelle ex
  *  @param {integer | undefined} options.minLength minimum length to start searching, default 3
  *  @param {integer | undefined} options.maxItems maximum number of items to display in the autocomplete list, default 10
  *
- *  @param {string|undefined} options.url URL to Nominatim API, default "https://nominatiIDEE.openstreetmap.org/search"
+ *  @param {string|undefined} options.url URL to Nominatim API, default "https://nominatim.openstreetmap.org/search"
  * @see {@link https://wiki.openstreetmap.org/wiki/Nominatim}
  */
 ol.control.SearchNominatim = class olcontrolSearchNominatim extends ol.control.SearchJSON {
@@ -16575,7 +16575,7 @@ ol.control.SearchNominatim = class olcontrolSearchNominatim extends ol.control.S
     options = options || {};
     options.className = options.className || 'nominatim';
     options.typing = options.typing || -1;
-    options.url = options.url || 'https://nominatiIDEE.openstreetmap.org/search';
+    options.url = options.url || 'https://nominatim.openstreetmap.org/search';
     options.copy = '<a href="http://www.openstreetmap.org/copyright" target="new">&copy; OpenStreetMap contributors</a>';
     super(options);
     this.set('polygon', options.polygon);
@@ -18475,7 +18475,7 @@ ol.control.Target = class olcontrolTarget extends ol.control.CanvasBase {
     ctx.scale(ratio, ratio);
     var cx = ctx.canvas.width / 2 / ratio;
     var cy = ctx.canvas.height / 2 / ratio;
-    var geom = new ol.geoIDEE.Point(this.getMap().getCoordinateFromPixel([cx, cy]));
+    var geom = new ol.geom.Point(this.getMap().getCoordinateFromPixel([cx, cy]));
     if (this.composite) ctx.globalCompositeOperation = this.composite;
     for (var i = 0; i < this._style.length; i++) {
       var style = this._style[i];
@@ -19899,9 +19899,9 @@ ol.control.WMSCapabilities = class olcontrolWMSCapabilities extends ol.control.B
     else
       this._elements.error.innerHTML = this.error[e.type] || ('ERROR (' + e.type + ')')
     if (e && e.type === 'load') {
-      this._elements.forIDEE.classList.add('visible')
+      this._elements.form.classList.add('visible')
     } else {
-      this._elements.forIDEE.classList.remove('visible')
+      this._elements.form.classList.remove('visible')
     }
   }
   /** Clear form
@@ -20158,8 +20158,8 @@ ol.control.WMSCapabilities = class olcontrolWMSCapabilities extends ol.control.B
    * @private
    */
   _getFormOptions() {
-    var minZoom = parseInt(this._elements.formMinZooIDEE.value)
-    var maxZoom = parseInt(this._elements.formMaxZooIDEE.value)
+    var minZoom = parseInt(this._elements.formMinZoom.value)
+    var maxZoom = parseInt(this._elements.formMaxZoom.value)
     var view = new ol.View({
       projection: this.getMap().getView().getProjection()
     })
@@ -20219,8 +20219,8 @@ ol.control.WMSCapabilities = class olcontrolWMSCapabilities extends ol.control.B
       }
     }
     this._elements.formExtent.value = opt.extent || ''
-    this._elements.formMaxZooIDEE.value = opt.maxZoom
-    this._elements.formMinZooIDEE.value = opt.minZoom
+    this._elements.formMaxZoom.value = opt.maxZoom
+    this._elements.formMinZoom.value = opt.minZoom
     this._elements.formProjection.value = opt.projection
     this._elements.formAttribution.value = opt.attribution
     this._elements.formVersion.value = opt.version
@@ -20378,7 +20378,7 @@ ol.control.WMTSCapabilities = class olcontrolWMTSCapabilities extends ol.control
    * @returns {boolean}
    */
   isSupportedSet(tm) {
-    return this.supportedSets.indexOf(tIDEE.TileMatrixSet) >= 0;
+    return this.supportedSets.indexOf(tm.TileMatrixSet) >= 0;
   }
   /** Return a WMTS options for the given capabilities
    * @param {*} caps layer capabilities (read from the capabilities)
@@ -20394,7 +20394,7 @@ ol.control.WMTSCapabilities = class olcontrolWMTSCapabilities extends ol.control
     caps.TileMatrixSetLink.forEach(function (tm) {
       if (this.isSupportedSet(tm)) {
         tmatrix = tm;
-        caps.TileMatrixSet = tIDEE.TileMatrixSet;
+        caps.TileMatrixSet = tm.TileMatrixSet;
       }
     }.bind(this));
     if (!tmatrix) {
@@ -20404,7 +20404,7 @@ ol.control.WMTSCapabilities = class olcontrolWMTSCapabilities extends ol.control
     if (tmatrix.TileMatrixSetLimits) {
       var tilePrefix = tmatrix.TileMatrixSetLimits[0].TileMatrix.split(':').length > 1;
       tmatrix.TileMatrixSetLimits.forEach(function (tm) {
-        var zoom = tIDEE.TileMatrix.split(':').pop();
+        var zoom = tm.TileMatrix.split(':').pop();
         minZoom = Math.min(minZoom, parseInt(zoom));
         maxZoom = Math.max(maxZoom, parseInt(zoom));
       });
@@ -20498,8 +20498,8 @@ ol.control.WMTSCapabilities = class olcontrolWMTSCapabilities extends ol.control
       options.source = {};
     if (!options.data)
       options.data = {};
-    var minZoom = parseInt(this._elements.formMinZooIDEE.value) || 0;
-    var maxZoom = parseInt(this._elements.formMaxZooIDEE.value) || 20;
+    var minZoom = parseInt(this._elements.formMinZoom.value) || 0;
+    var maxZoom = parseInt(this._elements.formMaxZoom.value) || 20;
     var ext = [];
     if (this._elements.formExtent.value) {
       this._elements.formExtent.value.split(',').forEach(function (b) {
@@ -20689,7 +20689,7 @@ ol.Map.prototype.animateFeature = function(feature, fanim) {
   }
   // Animate feature on this layer
   layer.getSource().addFeature(feature);
-  var listener = faniIDEE.on('animationend', function(e) {
+  var listener = fanim.on('animationend', function(e) {
     if (e.feature===feature) {
       // Remove feature on end
       layer.getSource().removeFeature(feature);
@@ -20732,8 +20732,8 @@ ol.layer.Base.prototype.animateFeature = function(feature, fanim, useFilter) {
   };
   if (!(fanim instanceof Array)) fanim = [fanim];
   // Remove null animations
-  for (var i=faniIDEE.length-1; i>=0; i--) {
-    if (fanim[i].duration_===0) faniIDEE.splice(i,1);
+  for (var i=fanim.length-1; i>=0; i--) {
+    if (fanim[i].duration_===0) fanim.splice(i,1);
   }
   var nb=0, step = 0;
   // Filter availiable on the layer
@@ -20785,7 +20785,7 @@ ol.layer.Base.prototype.animateFeature = function(feature, fanim, useFilter) {
       // Repeat animation
       if (nb < fanim[step].repeat_) {
         event.extent = false;
-      } else if (step < faniIDEE.length-1) {
+      } else if (step < fanim.length-1) {
         // newt step
         fanim[step].dispatchEvent({ type:'animationend', feature: feature });
         step++;
@@ -20837,7 +20837,7 @@ ol.layer.Base.prototype.animateFeature = function(feature, fanim, useFilter) {
   }
   // Launch animation
   function start(options) {
-    if (faniIDEE.length && !listenerKey) {
+    if (fanim.length && !listenerKey) {
       // Restart at stop time
       if (event.stop) {
         event.start = (new Date).getTime() - event.stop + event.start;
@@ -20923,13 +20923,13 @@ ol.featureAnimation.Bounce = class olfeatureAnimationBounce extends ol.featureAn
 	* @param {ol.featureAnimationEvent} e
 	*/
 	animate(e) {
-		var flashGeom = e.geoIDEE.clone();
+		var flashGeom = e.geom.clone();
 		/*
 		var t = this.easing_(e.elapsed)
 		t = Math.abs(Math.sin(this.bounce_*t)) * this.amplitude_ * (1-t) * e.frameState.viewState.resolution;
 		*/
 		var t = Math.abs(Math.sin(this.bounce_ * e.elapsed)) * this.amplitude_ * (1 - this.easing_(e.elapsed)) * e.frameState.viewState.resolution;
-		flashGeoIDEE.translate(0, t);
+		flashGeom.translate(0, t);
 		this.drawGeom_(e, flashGeom, e.geom);
 		return (e.time <= this.duration_);
 	}
@@ -20968,8 +20968,8 @@ ol.featureAnimation.Drop = class olfeatureAnimationDrop extends ol.featureAnimat
 			}
 		}
 		// Animate
-		var flashGeom = e.geoIDEE.clone();
-		flashGeoIDEE.translate(
+		var flashGeom = e.geom.clone();
+		flashGeom.translate(
 			this.dx * (1 - this.easing_(e.elapsed)),
 			this.dy * (1 - this.easing_(e.elapsed))
 		);
@@ -21049,7 +21049,7 @@ ol.featureAnimation.Null = class olfeatureAnimationNull extends ol.featureAnimat
  * @param {ol.featureAnimationPathOptions} options extend ol.featureAnimation options
  *  @param {Number} options.speed speed of the feature, if 0 the duration parameter will be used instead, default 0
  *  @param {Number|boolean} options.rotate rotate the symbol when following the path, true or the initial rotation, default false
- *  @param {ol.geoIDEE.LineString|ol.Feature} options.path the path to follow
+ *  @param {ol.geom.LineString|ol.Feature} options.path the path to follow
  *  @param {Number} options.duration duration of the animation in ms
  */
 ol.featureAnimation.Path = class olfeatureAnimationPath extends ol.featureAnimation {
@@ -21125,7 +21125,7 @@ ol.featureAnimation.Path = class olfeatureAnimationPath extends ol.featureAnimat
       // Rotated style
       e.style = st;
     }
-    e.geoIDEE.setCoordinates(p);
+    e.geom.setCoordinates(p);
     // Animate
     this.drawGeom_(e, e.geom);
     // restore style (if modify by rotation)
@@ -21159,16 +21159,16 @@ ol.featureAnimation.Shake = class olfeatureAnimationShake extends ol.featureAnim
 	* @param {ol.featureAnimationEvent} e
 	*/
 	animate(e) {
-		var flashGeom = e.geoIDEE.clone();
-		var shadow = e.geoIDEE.clone();
+		var flashGeom = e.geom.clone();
+		var shadow = e.geom.clone();
 		var t = this.easing_(e.elapsed);
 		t = Math.sin(this.bounce_ * t) * this.amplitude_ * (1 - t) * e.frameState.viewState.resolution;
 		if (this.horizontal_) {
-			flashGeoIDEE.translate(t, 0);
+			flashGeom.translate(t, 0);
 			shadow.translate(t, 0);
 		}
 		else
-			flashGeoIDEE.translate(0, t);
+			flashGeom.translate(0, t);
 		this.drawGeom_(e, flashGeom, shadow);
 		return (e.time <= this.duration_);
 	}
@@ -21226,8 +21226,8 @@ ol.featureAnimation.Slide = class olfeatureAnimationSlide extends ol.featureAnim
 				this.duration_ = Math.abs(this.dx) / this.speed_ / e.frameState.viewState.resolution;
 		}
 		// Animate
-		var flashGeom = e.geoIDEE.clone();
-		flashGeoIDEE.translate(this.dx * (1 - this.easing_(e.elapsed)), 0);
+		var flashGeom = e.geom.clone();
+		flashGeom.translate(this.dx * (1 - this.easing_(e.elapsed)), 0);
 		this.drawGeom_(e, flashGeom);
 		return (e.time <= this.duration_);
 	}
@@ -21301,9 +21301,9 @@ ol.featureAnimation.Throw = class olfeatureAnimationThrow extends ol.featureAnim
 			this.duration_ = Math.sqrt(dx * dx + dy * dy) / this.speed_ / e.frameState.viewState.resolution;
 		}
 		// Animate
-		var flashGeom = e.geoIDEE.clone();
-		var shadow = e.geoIDEE.clone();
-		flashGeoIDEE.translate(this.dx * (1 - this.easing_(e.elapsed)),
+		var flashGeom = e.geom.clone();
+		var shadow = e.geom.clone();
+		flashGeom.translate(this.dx * (1 - this.easing_(e.elapsed)),
 			this.dy * Math.cos(Math.PI / 2 * this.easing_(e.elapsed)));
 		shadow.translate(this.dx * (1 - this.easing_(e.elapsed)), 0);
 		this.drawGeom_(e, flashGeom, shadow);
@@ -23302,7 +23302,7 @@ ol.format.GeoJSONX = class olformatGeoJSONX extends ol.format.GeoJSON {
     return f;
   }
   /** Encode a geometry as a GeoJSONX object.
-   * @param {ol.geoIDEE.Geometry} geometry Geometry.
+   * @param {ol.geom.Geometry} geometry Geometry.
    * @param {*} options Write options.
    * @return {*} Object.
    * @override
@@ -23432,12 +23432,12 @@ ol.format.GeoJSONP = class olformatGeoJSONP extends ol.format.GeoJSONX {
   encodeCoordinates(v) {
     var g
     if (typeof (v[0]) === 'number') {
-      g = new ol.geoIDEE.Point(v)
+      g = new ol.geom.Point(v)
       return this._lineFormat.writeGeometry(g)
     } else if (v.length && v[0]) {
       var tab = (typeof (v[0][0]) === 'number')
       if (tab) {
-        g = new ol.geoIDEE.LineString(v)
+        g = new ol.geom.LineString(v)
         return this._lineFormat.writeGeometry(g)
       } else {
         var r = []
@@ -23519,13 +23519,13 @@ ol.format.GeoRSS = class olformatGeoRSS extends ol.Object {
     // Get geometry
     if (f.get('geo:long')) {
       // LonLat
-      g = new ol.geoIDEE.Point([parseFloat(f.get('geo:long')), parseFloat(f.get('geo:lat'))])
+      g = new ol.geom.Point([parseFloat(f.get('geo:long')), parseFloat(f.get('geo:lat'))])
       f.unset('geo:long')
       f.unset('geo:lat')
     } else if (f.get('georss:point')) {
       // Point
       coord = f.get('georss:point').trim().split(' ')
-      g = new ol.geoIDEE.Point([parseFloat(coord[1]), parseFloat(coord[0])])
+      g = new ol.geom.Point([parseFloat(coord[1]), parseFloat(coord[0])])
       f.unset('georss:point')
     } else if (f.get('georss:polygon')) {
       // Polygon
@@ -23533,7 +23533,7 @@ ol.format.GeoRSS = class olformatGeoRSS extends ol.Object {
       for (var i = 0; i < temp.length; i += 2) {
         coord.push([parseFloat(temp[i + 1]), parseFloat(temp[i])])
       }
-      g = new ol.geoIDEE.Polygon([coord])
+      g = new ol.geom.Polygon([coord])
       f.unset('georss:polygon')
     } else if (f.get('georss:where')) {
       // GML
@@ -24036,7 +24036,7 @@ ol.interaction.Blob = class olinteractionBlob extends ol.interaction.Clip {
 */
 /** Handles coordinates on the center of the viewport.
  * It can be used as abstract base class used for creating subclasses. 
- * The CenterTouch interaction modifies map browser event coordinate and pixel properties to force pointer on the viewport center to any interaction that theIDEE.
+ * The CenterTouch interaction modifies map browser event coordinate and pixel properties to force pointer on the viewport center to any interaction that them.
  * Only pointermove pointerup are concerned with it.
  * @constructor
  * @extends {ol.interaction.Interaction}
@@ -24617,7 +24617,7 @@ ol.interaction.DrawHole = class olinteractionDrawHole extends ol.interaction.Dra
       if (geometry) {
         geometry.setCoordinates([coordinates[0].concat([coordinates[0][0]])])
       } else {
-        geometry = new ol.geoIDEE.Polygon(coordinates)
+        geometry = new ol.geom.Polygon(coordinates)
       }
       return geometry
     }
@@ -24767,18 +24767,18 @@ ol.interaction.DrawHole = class olinteractionDrawHole extends ol.interaction.Dra
     if (c.length > 3) {
       if (this._polygonIndex !== false) {
         var geom = e.feature.getGeometry()
-        var newGeom = new ol.geoIDEE.MultiPolygon([])
-        for (var i = 0, pi; pi = geoIDEE.getPolygon(i); i++) {
+        var newGeom = new ol.geom.MultiPolygon([])
+        for (var i = 0, pi; pi = geom.getPolygon(i); i++) {
           if (i === this._polygonIndex) {
-            pi.appendLinearRing(new ol.geoIDEE.LinearRing(c))
-            newGeoIDEE.appendPolygon(pi)
+            pi.appendLinearRing(new ol.geom.LinearRing(c))
+            newGeom.appendPolygon(pi)
           } else {
-            newGeoIDEE.appendPolygon(pi)
+            newGeom.appendPolygon(pi)
           }
         }
         e.feature.setGeometry(newGeom)
       } else {
-        this.getPolygon().appendLinearRing(new ol.geoIDEE.LinearRing(c))
+        this.getPolygon().appendLinearRing(new ol.geom.LinearRing(c))
       }
     }
     this.dispatchEvent({ type: 'modifyend', features: [this._current] })
@@ -24789,8 +24789,8 @@ ol.interaction.DrawHole = class olinteractionDrawHole extends ol.interaction.Dra
   /**
    * Function that is called when a geometry's coordinates are updated.
    * @param {Array<ol.coordinate>} coordinates
-   * @param {ol.geoIDEE.Polygon} geometry
-   * @return {ol.geoIDEE.Polygon}
+   * @param {ol.geom.Polygon} geometry
+   * @return {ol.geom.Polygon}
    * @private
    */
   _geometryFn(coordinates, geometry) {
@@ -24802,7 +24802,7 @@ ol.interaction.DrawHole = class olinteractionDrawHole extends ol.interaction.Dra
     if (geometry) {
       geometry.setCoordinates([coordinates[0].concat([coordinates[0][0]])])
     } else {
-      geometry = new ol.geoIDEE.Polygon(coordinates)
+      geometry = new ol.geom.Polygon(coordinates)
     }
     return geometry
   }
@@ -24924,7 +24924,7 @@ ol.interaction.DrawRegular = class olinteractionDrawRegular extends ol.interacti
     return this.sides_
   }
   /** Get geom of the current drawing
-  * @return {ol.geoIDEE.Polygon | ol.geoIDEE.Point}
+  * @return {ol.geom.Polygon | ol.geom.Point}
   */
   getGeom_() {
     this.overlayLayer_.getSource().clear()
@@ -24940,12 +24940,12 @@ ol.interaction.DrawRegular = class olinteractionDrawRegular extends ol.interacti
         center = [(coord[0] + center[0]) / 2, (coord[1] + center[1]) / 2]
         d = [coord[0] - center[0], coord[1] - center[1]]
         r = Math.sqrt(d[0] * d[0] + d[1] * d[1])
-        circle = new ol.geoIDEE.Circle(center, r, 'XY')
+        circle = new ol.geom.Circle(center, r, 'XY')
         // Optimize points on the circle
         centerPx = this.getMap().getPixelFromCoordinate(center)
         dmax = Math.max(100, Math.abs(centerPx[0] - this.coordPx_[0]), Math.abs(centerPx[1] - this.coordPx_[1]))
         dmax = Math.min(this.maxCircleCoordinates_, Math.round(dmax / 3))
-        return ol.geoIDEE.Polygon.fromCircle(circle, dmax, 0)
+        return ol.geom.Polygon.fromCircle(circle, dmax, 0)
       } else {
         var hasrotation = this.canRotate_ && this.centered_ && this.square_
         d = [coord[0] - center[0], coord[1] - center[1]]
@@ -24959,20 +24959,20 @@ ol.interaction.DrawRegular = class olinteractionDrawRegular extends ol.interacti
         }
         r = Math.sqrt(d[0] * d[0] + d[1] * d[1])
         if (r > 0) {
-          circle = new ol.geoIDEE.Circle(center, r, 'XY')
+          circle = new ol.geom.Circle(center, r, 'XY')
           var a
           if (hasrotation)
             a = Math.atan2(d[1], d[0])
           else
             a = this.startAngle[this.sides_] || this.startAngle['default']
           if (this.sides_) {
-            g = ol.geoIDEE.Polygon.fromCircle(circle, this.sides_, a)
+            g = ol.geom.Polygon.fromCircle(circle, this.sides_, a)
           } else {
             // Optimize points on the circle
             centerPx = this.getMap().getPixelFromCoordinate(this.center_)
             dmax = Math.max(100, Math.abs(centerPx[0] - this.coordPx_[0]), Math.abs(centerPx[1] - this.coordPx_[1]))
             dmax = Math.min(this.maxCircleCoordinates_, Math.round(dmax / (this.centered_ ? 3 : 5)))
-            g = ol.geoIDEE.Polygon.fromCircle(circle, dmax, 0)
+            g = ol.geom.Polygon.fromCircle(circle, dmax, 0)
           }
           if (hasrotation)
             return g
@@ -25002,7 +25002,7 @@ ol.interaction.DrawRegular = class olinteractionDrawRegular extends ol.interacti
       }
     }
     // No geom => return a point
-    return new ol.geoIDEE.Point(this.center_)
+    return new ol.geom.Point(this.center_)
   }
   /** Draw sketch
   * @return {ol.Feature} The feature being drawn.
@@ -25022,7 +25022,7 @@ ol.interaction.DrawRegular = class olinteractionDrawRegular extends ol.interacti
         if (this.coord_
           && this.square_
           && ((this.canRotate_ && this.centered_ && this.coord_) || (!this.sides_ && !this.centered_))) {
-          this.overlayLayer_.getSource().addFeature(new ol.Feature(new ol.geoIDEE.LineString([this.center_, this.coord_])))
+          this.overlayLayer_.getSource().addFeature(new ol.Feature(new ol.geom.LineString([this.center_, this.coord_])))
         }
         return f
       }
@@ -25033,7 +25033,7 @@ ol.interaction.DrawRegular = class olinteractionDrawRegular extends ol.interacti
   drawPoint_(pt, noclear) {
     if (!noclear)
       this.overlayLayer_.getSource().clear()
-    this.overlayLayer_.getSource().addFeature(new ol.Feature(new ol.geoIDEE.Point(pt)))
+    this.overlayLayer_.getSource().addFeature(new ol.Feature(new ol.geom.Point(pt)))
   }
   /**
    * @param {ol.MapBrowserEvent} evt Map browser event.
@@ -25158,7 +25158,7 @@ ol.interaction.DrawRegular = class olinteractionDrawRegular extends ol.interacti
       this.coord_ = null
       var f = this.feature_ = new ol.Feature({})
       f.setGeometryName(this.geometryName_ || 'geometry')
-      f.setGeometry(new ol.geoIDEE.Polygon([[evt.coordinate, evt.coordinate, evt.coordinate]]))
+      f.setGeometry(new ol.geom.Polygon([[evt.coordinate, evt.coordinate, evt.coordinate]]))
       this.drawSketch_(evt)
       this.dispatchEvent({ type: 'drawstart', feature: f, pixel: evt.pixel, coordinate: evt.coordinate })
     } else {
@@ -25200,7 +25200,7 @@ ol.interaction.DrawRegular.prototype.startAngle = {
   (http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.txt).
 */
 /** Interaction DrawTouch : pointer is deferred to the center of the viewport and a target is drawn to materialize this point
- * The interaction modifies map browser event coordinate and pixel properties to force pointer on the viewport center to any interaction that theIDEE.
+ * The interaction modifies map browser event coordinate and pixel properties to force pointer on the viewport center to any interaction that them.
  * @constructor
  * @fires drawstart
  * @fires drawend
@@ -25208,7 +25208,7 @@ ol.interaction.DrawRegular.prototype.startAngle = {
  * @extends {ol.interaction.CenterTouch}
  * @param {olx.interaction.DrawOptions} options
  *  @param {ol.source.Vector | undefined} options.source Destination source for the drawn features.
- *  @param {ol.geoIDEE.GeometryType} options.type Drawing type ('Point', 'LineString', 'Polygon') not ('MultiPoint', 'MultiLineString', 'MultiPolygon' or 'Circle'). Required.
+ *  @param {ol.geom.GeometryType} options.type Drawing type ('Point', 'LineString', 'Polygon') not ('MultiPoint', 'MultiLineString', 'MultiPolygon' or 'Circle'). Required.
  *	@param {boolean} [options.tap=true] enable point insertion on tap, default true
  *  @param {ol.style.Style|Array<ol.style.Style>} [options.style] Drawing style
  *  @param {ol.style.Style|Array<ol.style.Style>} [options.sketchStyle] Sketch style
@@ -25274,13 +25274,13 @@ ol.interaction.DrawTouch = class olinteractionDrawTouch extends ol.interaction.C
     }
   }
   /** Set geometry type
-   * @param {ol.geoIDEE.GeometryType} type
+   * @param {ol.geom.GeometryType} type
    */
   setGeometryType(type) {
     return this.sketch.setGeometryType(type);
   }
   /** Get geometry type
-   * @return {ol.geoIDEE.GeometryType}
+   * @return {ol.geom.GeometryType}
    */
   getGeometryType() {
     return this.sketch.getGeometryType();
@@ -25710,7 +25710,7 @@ ol.interaction.FocusMap = class olinteractionFocusMap extends ol.interaction.Int
  * @param {any} options
  *  @param { ol.Collection.<ol.Feature> | undefined } option.features Destination collection for the drawn features.
  *  @param { ol.source.Vector | undefined } options.source Destination source for the drawn features.
- *  @param {ol.geoIDEE.GeometryType} options.type Drawing type ('Point', 'LineString', 'Polygon'), default LineString.
+ *  @param {ol.geom.GeometryType} options.type Drawing type ('Point', 'LineString', 'Polygon'), default LineString.
  *  @param {Number | undefined} options.minAccuracy minimum accuracy underneath a new point will be register (if no condition), default 20
  *  @param {function | undefined} options.condition a function that take a ol.Geolocation object and return a boolean to indicate whether location should be handled or not, default return true if accuracy < minAccuracy
  *  @param {Object} options.attributes a list of attributes to register as Point properties: {accuracy:true,accuracyGeometry:true,heading:true,speed:true}, default none.
@@ -25814,7 +25814,7 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
     this.setActive(false)
   }
   /** Simplify 3D geometry
-   * @param {ol.geoIDEE.Geometry} geo
+   * @param {ol.geom.Geometry} geo
    * @param {number} tolerance
    */
   simplify3D(geo, tolerance) {
@@ -25825,7 +25825,7 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
     }
     var simply = [geom[0]]
     var pi, p = ol.proj.transform(geom[0], proj, 'EPSG:4326')
-    for (var i = 1; i < geoIDEE.length; i++) {
+    for (var i = 1; i < geom.length; i++) {
       pi = ol.proj.transform(geom[i], proj, 'EPSG:4326')
       var d = ol.sphere.getDistance(p, pi)
       if (d > tolerance) {
@@ -25833,8 +25833,8 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
         p = pi
       }
     }
-    if (simply[simply.length - 1] !== geom[geoIDEE.length - 1]) {
-      simply.push(geom[geoIDEE.length - 1])
+    if (simply[simply.length - 1] !== geom[geom.length - 1]) {
+      simply.push(geom[geom.length - 1])
     }
     /*
     var simply = geo.simplify(tolerance).getCoordinates();
@@ -25854,9 +25854,9 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
     */
     // Get 3D geom
     if (this.get("type") === 'Polygon') {
-      geo = new ol.geoIDEE.Polygon([simply], 'XYZM')
+      geo = new ol.geom.Polygon([simply], 'XYZM')
     } else {
-      geo = new ol.geoIDEE.LineString(simply, 'XYZM')
+      geo = new ol.geom.LineString(simply, 'XYZM')
     }
     return geo
   }
@@ -26031,8 +26031,8 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
         var pt = this.path_[this.path_.length - 1]
         heading = Math.atan2(coord[0] - pt[0], coord[1] - pt[1])
       }
-      var circle = new ol.geoIDEE.Circle(pos, map.getView().getResolution() * accu)
-      p = ol.geoIDEE.Polygon.fromCircle(circle)
+      var circle = new ol.geom.Circle(pos, map.getView().getResolution() * accu)
+      p = ol.geom.Polygon.fromCircle(circle)
     } else {
       // Current location
       loc = this.geolocation
@@ -26122,7 +26122,7 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
       switch (this.get("type")) {
         case "Point":
           this.path_ = [pos]
-          f.setGeometry(new ol.geoIDEE.Point(pos, 'XYZM'))
+          f.setGeometry(new ol.geom.Point(pos, 'XYZM'))
           var attr = this.get('attributes')
           if (attr.heading)
             f.set("heading", loc.getHeading())
@@ -26135,7 +26135,7 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
           break
         case "LineString":
           if (this.path_.length > 1) {
-            geo = new ol.geoIDEE.LineString(this.path_, 'XYZM')
+            geo = new ol.geom.LineString(this.path_, 'XYZM')
             if (this.get("tolerance"))
               geo = this.simplify3D(geo, this.get("tolerance"))
             f.setGeometry(geo)
@@ -26145,7 +26145,7 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
           break
         case "Polygon":
           if (this.path_.length > 2) {
-            geo = new ol.geoIDEE.Polygon([this.path_], 'XYZM')
+            geo = new ol.geom.Polygon([this.path_], 'XYZM')
             if (this.get("tolerance"))
               geo = this.simplify3D(geo, this.get("tolerance"))
             f.setGeometry(geo)
@@ -26156,7 +26156,7 @@ ol.interaction.GeolocationDraw = class olinteractionGeolocationDraw extends ol.i
       }
       this.dispatchEvent({ type: 'drawing', feature: this.sketch_[1], geolocation: loc })
     }
-    this.sketch_[2].setGeometry(new ol.geoIDEE.Point(pos))
+    this.sketch_[2].setGeometry(new ol.geom.Point(pos))
     this.sketch_[2].set("heading", heading)
     // Drawing
     this.dispatchEvent({ type: 'tracking', feature: this.sketch_[1], geolocation: loc })
@@ -26644,18 +26644,18 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
   */
   getNearestCoord(pt, geom) {
     var i, l, p, p0, dm
-    switch (geoIDEE.getType()) {
+    switch (geom.getType()) {
       case 'Point': {
-        return { coord: geoIDEE.getCoordinates(), dist: ol.coordinate.dist2d(geoIDEE.getCoordinates(), pt) }
+        return { coord: geom.getCoordinates(), dist: ol.coordinate.dist2d(geom.getCoordinates(), pt) }
       }
       case 'MultiPoint': {
-        return this.getNearestCoord(pt, new ol.geoIDEE.LineString(geoIDEE.getCoordinates()))
+        return this.getNearestCoord(pt, new ol.geom.LineString(geom.getCoordinates()))
       }
       case 'LineString':
       case 'LinearRing': {
         var d
         dm = Number.MAX_VALUE
-        var coords = geoIDEE.getCoordinates()
+        var coords = geom.getCoordinates()
         for (i = 0; i < coords.length; i++) {
           d = ol.coordinate.dist2d(pt, coords[i])
           if (d < dm) {
@@ -26666,7 +26666,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         return { coord: p0, dist: dm }
       }
       case 'MultiLineString': {
-        var lstring = geoIDEE.getLineStrings()
+        var lstring = geom.getLineStrings()
         p0 = false, dm = Number.MAX_VALUE
         for (i = 0; l = lstring[i]; i++) {
           p = this.getNearestCoord(pt, l)
@@ -26679,7 +26679,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         return p0
       }
       case 'Polygon': {
-        var lring = geoIDEE.getLinearRings()
+        var lring = geom.getLinearRings()
         p0 = false
         dm = Number.MAX_VALUE
         for (i = 0; l = lring[i]; i++) {
@@ -26693,7 +26693,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         return p0
       }
       case 'MultiPolygon': {
-        var poly = geoIDEE.getPolygons()
+        var poly = geom.getPolygons()
         p0 = false
         dm = Number.MAX_VALUE
         for (i = 0; l = poly[i]; i++) {
@@ -26707,7 +26707,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         return p0
       }
       case 'GeometryCollection': {
-        var g = geoIDEE.getGeometries()
+        var g = geom.getGeometries()
         p0 = false
         dm = Number.MAX_VALUE
         for (i = 0; l = g[i]; i++) {
@@ -26730,12 +26730,12 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
   getArcs(geom, coord) {
     var arcs = false
     var coords, i, s, l, g
-    switch (geoIDEE.getType()) {
+    switch (geom.getType()) {
       case 'Point': {
-        if (ol.coordinate.equal(coord, geoIDEE.getCoordinates())) {
+        if (ol.coordinate.equal(coord, geom.getCoordinates())) {
           arcs = {
             geom: geom,
-            type: geoIDEE.getType(),
+            type: geom.getType(),
             coord1: [],
             coord2: [],
             node: true
@@ -26744,12 +26744,12 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         break
       }
       case 'MultiPoint': {
-        coords = geoIDEE.getCoordinates()
+        coords = geom.getCoordinates()
         for (i = 0; i < coords.length; i++) {
           if (ol.coordinate.equal(coord, coords[i])) {
             arcs = {
               geom: geom,
-              type: geoIDEE.getType(),
+              type: geom.getType(),
               index: i,
               coord1: [],
               coord2: [],
@@ -26762,15 +26762,15 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
       }
       case 'LinearRing':
       case 'LineString': {
-        var p = geoIDEE.getClosestPoint(coord)
+        var p = geom.getClosestPoint(coord)
         if (ol.coordinate.dist2d(p, coord) < 1.5 * this.tolerance_) {
           var split
           // Split the line in two
-          if (geoIDEE.getType() === 'LinearRing') {
-            g = new ol.geoIDEE.LineString(geoIDEE.getCoordinates())
+          if (geom.getType() === 'LinearRing') {
+            g = new ol.geom.LineString(geom.getCoordinates())
             split = g.splitAt(coord, this.tolerance_)
           } else {
-            split = geoIDEE.splitAt(coord, this.tolerance_)
+            split = geom.splitAt(coord, this.tolerance_)
           }
           // If more than 2
           if (split.length > 2) {
@@ -26780,7 +26780,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
               c.shift()
               coords = coords.concat(c)
             }
-            split = [split[0], new ol.geoIDEE.LineString(coords)]
+            split = [split[0], new ol.geom.LineString(coords)]
           }
           // Split in two
           if (split.length === 2) {
@@ -26791,10 +26791,10 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
             c1.shift()
             arcs = {
               geom: geom,
-              type: geoIDEE.getType(),
+              type: geom.getType(),
               coord1: c0,
               coord2: c1,
-              node: (geoIDEE.getCoordinates().length === nbpt),
+              node: (geom.getCoordinates().length === nbpt),
               closed: false
             }
           } else if (split.length === 1) {
@@ -26808,7 +26808,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
                 s.pop()
               arcs = {
                 geom: geom,
-                type: geoIDEE.getType(),
+                type: geom.getType(),
                 coord1: [],
                 coord2: s,
                 node: true,
@@ -26819,7 +26819,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
               s.pop()
               arcs = {
                 geom: geom,
-                type: geoIDEE.getType(),
+                type: geom.getType(),
                 coord1: s,
                 coord2: [],
                 node: true,
@@ -26831,12 +26831,12 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         break
       }
       case 'MultiLineString': {
-        var lstring = geoIDEE.getLineStrings()
+        var lstring = geom.getLineStrings()
         for (i = 0; l = lstring[i]; i++) {
           arcs = this.getArcs(l, coord)
           if (arcs) {
             arcs.geom = geom
-            arcs.type = geoIDEE.getType()
+            arcs.type = geom.getType()
             arcs.lstring = i
             break
           }
@@ -26844,12 +26844,12 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         break
       }
       case 'Polygon': {
-        var lring = geoIDEE.getLinearRings()
+        var lring = geom.getLinearRings()
         for (i = 0; l = lring[i]; i++) {
           arcs = this.getArcs(l, coord)
           if (arcs) {
             arcs.geom = geom
-            arcs.type = geoIDEE.getType()
+            arcs.type = geom.getType()
             arcs.index = i
             break
           }
@@ -26857,12 +26857,12 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         break
       }
       case 'MultiPolygon': {
-        var poly = geoIDEE.getPolygons()
+        var poly = geom.getPolygons()
         for (i = 0; l = poly[i]; i++) {
           arcs = this.getArcs(l, coord)
           if (arcs) {
             arcs.geom = geom
-            arcs.type = geoIDEE.getType()
+            arcs.type = geom.getType()
             arcs.poly = i
             break
           }
@@ -26870,21 +26870,21 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         break
       }
       case 'GeometryCollection': {
-        g = geoIDEE.getGeometries()
+        g = geom.getGeometries()
         for (i = 0; l = g[i]; i++) {
           arcs = this.getArcs(l, coord)
           if (arcs) {
             arcs.geom = geom
             arcs.g = i
             arcs.typeg = arcs.type
-            arcs.type = geoIDEE.getType()
+            arcs.type = geom.getType()
             break
           }
         }
         break
       }
       default: {
-        console.error('ol/interaction/ModifyFeature ' + geoIDEE.getType() + ' not supported!')
+        console.error('ol/interaction/ModifyFeature ' + geom.getType() + ' not supported!')
         break
       }
     }
@@ -26963,7 +26963,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         if (a.closed)
           coords.push(coords[0])
         if (coords.length > 1) {
-          if (a.geoIDEE.getCoordinates().length != coords.length) {
+          if (a.geom.getCoordinates().length != coords.length) {
             a.coords = coords
             return true
           }
@@ -26974,7 +26974,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         if (a.closed)
           coords.push(coords[0])
         if (coords.length > 1) {
-          var c = a.geoIDEE.getCoordinates()
+          var c = a.geom.getCoordinates()
           if (c[a.lstring].length != coords.length) {
             c[a.lstring] = coords
             a.coords = c
@@ -26987,7 +26987,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         if (a.closed)
           coords.push(coords[0])
         if (coords.length > 3) {
-          c = a.geoIDEE.getCoordinates()
+          c = a.geom.getCoordinates()
           if (c[a.index].length != coords.length) {
             c[a.index] = coords
             a.coords = c
@@ -27000,7 +27000,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         if (a.closed)
           coords.push(coords[0])
         if (coords.length > 3) {
-          c = a.geoIDEE.getCoordinates()
+          c = a.geom.getCoordinates()
           if (c[a.poly][a.index].length != coords.length) {
             c[a.poly][a.index] = coords
             a.coords = c
@@ -27012,11 +27012,11 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
       case 'GeometryCollection': {
         a.type = a.typeg
         var geom = a.geom
-        var geoms = geoIDEE.getGeometries()
+        var geoms = geom.getGeometries()
         a.geom = geoms[a.g]
         var found = this._getModification(a)
         // Restore current arc
-        geoIDEE.setGeometries(geoms)
+        geom.setGeometries(geoms)
         a.geom = geom
         a.type = 'GeometryCollection'
         return found
@@ -27049,15 +27049,15 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
         features: this._modifiedFeatures
       })
       this.arcs.forEach(function (a) {
-        if (a.geoIDEE.getType() === 'GeometryCollection') {
+        if (a.geom.getType() === 'GeometryCollection') {
           if (a.coords) {
-            var geoms = a.geoIDEE.getGeometries()
+            var geoms = a.geom.getGeometries()
             geoms[a.g].setCoordinates(a.coords)
-            a.geoIDEE.setGeometries(geoms)
+            a.geom.setGeometries(geoms)
           }
         } else {
           if (a.coords)
-            a.geoIDEE.setCoordinates(a.coords)
+            a.geom.setCoordinates(a.coords)
         }
       }.bind(this))
       this.dispatchEvent({
@@ -27095,44 +27095,44 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
     var c
     switch (a.type) {
       case 'Point': {
-        a.geoIDEE.setCoordinates(coords[0])
+        a.geom.setCoordinates(coords[0])
         break
       }
       case 'MultiPoint': {
-        c = a.geoIDEE.getCoordinates()
+        c = a.geom.getCoordinates()
         c[a.index] = coords[0]
-        a.geoIDEE.setCoordinates(c)
+        a.geom.setCoordinates(c)
         break
       }
       case 'LineString': {
-        a.geoIDEE.setCoordinates(coords)
+        a.geom.setCoordinates(coords)
         break
       }
       case 'MultiLineString': {
-        c = a.geoIDEE.getCoordinates()
+        c = a.geom.getCoordinates()
         c[a.lstring] = coords
-        a.geoIDEE.setCoordinates(c)
+        a.geom.setCoordinates(c)
         break
       }
       case 'Polygon': {
-        c = a.geoIDEE.getCoordinates()
+        c = a.geom.getCoordinates()
         c[a.index] = coords
-        a.geoIDEE.setCoordinates(c)
+        a.geom.setCoordinates(c)
         break
       }
       case 'MultiPolygon': {
-        c = a.geoIDEE.getCoordinates()
+        c = a.geom.getCoordinates()
         c[a.poly][a.index] = coords
-        a.geoIDEE.setCoordinates(c)
+        a.geom.setCoordinates(c)
         break
       }
       case 'GeometryCollection': {
         a.type = a.typeg
         var geom = a.geom
-        var geoms = geoIDEE.getGeometries()
+        var geoms = geom.getGeometries()
         a.geom = geoms[a.g]
         this.setArcCoordinates(a, coords)
-        geoIDEE.setGeometries(geoms)
+        geom.setGeometries(geoms)
         a.geom = geom
         a.type = 'GeometryCollection'
         break
@@ -27147,7 +27147,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
     if (!this.arcs) return true
     // Show sketch
     this.overlayLayer_.getSource().clear()
-    var p = new ol.Feature(new ol.geoIDEE.Point(e.coordinate))
+    var p = new ol.Feature(new ol.geom.Point(e.coordinate))
     this.overlayLayer_.getSource().addFeature(p)
     // Nothing to do
     if (!this.arcs.length) return true
@@ -27175,7 +27175,7 @@ ol.interaction.ModifyFeature = class olinteractionModifyFeature extends ol.inter
     var current = this.getClosestFeature(e)
     // Draw sketch
     if (current) {
-      var p = new ol.Feature(new ol.geoIDEE.Point(current.coord))
+      var p = new ol.Feature(new ol.geom.Point(current.coord))
       this.overlayLayer_.getSource().addFeature(p)
     }
     // Show cursor
@@ -27487,7 +27487,7 @@ ol.interaction.Offset = class olinteractionOffset extends ol.interaction.Pointer
       this.dispatchEvent({ type: 'modifystart', features: [this.current_.feature] });
       this._modifystart = false;
     }
-    var p = this.current_.geoIDEE.getClosestPoint(e.coordinate);
+    var p = this.current_.geom.getClosestPoint(e.coordinate);
     var d = ol.coordinate.dist2d(p, e.coordinate);
     var seg, v1, v2, offset;
     switch (this.current_.geomType) {
@@ -27503,7 +27503,7 @@ ol.interaction.Offset = class olinteractionOffset extends ol.interaction.Pointer
           for (var i = 0; i < this.current_.coordinates.length; i++) {
             offset.push(ol.coordinate.offsetCoords(this.current_.coordinates[i], i == 0 ? d : -d));
           }
-          this.current_.feature.setGeometry(new ol.geoIDEE.Polygon(offset));
+          this.current_.feature.setGeometry(new ol.geom.Polygon(offset));
         }
         break;
       }
@@ -27516,7 +27516,7 @@ ol.interaction.Offset = class olinteractionOffset extends ol.interaction.Pointer
             d = -d;
           }
           offset = ol.coordinate.offsetCoords(this.current_.coordinates, d);
-          this.current_.feature.setGeometry(new ol.geoIDEE.LineString(offset));
+          this.current_.feature.setGeometry(new ol.geom.LineString(offset));
         }
         break;
       }
@@ -27895,10 +27895,10 @@ ol.interaction.SelectCluster = class olinteractionSelectCluster extends ol.inter
         if (max == 2 || max == 4)
           a += Math.PI / 4
         p = [center[0] + r * Math.sin(a), center[1] + r * Math.cos(a)]
-        cf = new ol.Feature({ 'selectclusterfeature': true, 'features': [cluster[i]], geometry: new ol.geoIDEE.Point(p) })
+        cf = new ol.Feature({ 'selectclusterfeature': true, 'features': [cluster[i]], geometry: new ol.geom.Point(p) })
         cf.setStyle(cluster[i].getStyle())
         features.push(cf)
-        lk = new ol.Feature({ 'selectclusterlink': true, geometry: new ol.geoIDEE.LineString([center, p]) })
+        lk = new ol.Feature({ 'selectclusterlink': true, geometry: new ol.geom.LineString([center, p]) })
         features.push(lk)
       }
     }
@@ -27917,10 +27917,10 @@ ol.interaction.SelectCluster = class olinteractionSelectCluster extends ol.inter
         var dx = pix * r * Math.sin(a)
         var dy = pix * r * Math.cos(a)
         p = [center[0] + dx, center[1] + dy]
-        cf = new ol.Feature({ 'selectclusterfeature': true, 'features': [cluster[i]], geometry: new ol.geoIDEE.Point(p) })
+        cf = new ol.Feature({ 'selectclusterfeature': true, 'features': [cluster[i]], geometry: new ol.geom.Point(p) })
         cf.setStyle(cluster[i].getStyle())
         features.push(cf)
-        lk = new ol.Feature({ 'selectclusterlink': true, geometry: new ol.geoIDEE.LineString([center, p]) })
+        lk = new ol.Feature({ 'selectclusterlink': true, geometry: new ol.geom.LineString([center, p]) })
         features.push(lk)
       }
     }
@@ -27960,7 +27960,7 @@ ol.interaction.SelectCluster = class olinteractionSelectCluster extends ol.inter
           var pt = feature.getGeometry().getCoordinates()
           pt[0] = center[0] + e * (pt[0] - center[0])
           pt[1] = center[1] + e * (pt[1] - center[1])
-          var geo = new ol.geoIDEE.Point(pt)
+          var geo = new ol.geom.Point(pt)
           // Image style
           var st = stylefn(feature, res)
           for (var s = 0; s < st.length; s++) {
@@ -27998,7 +27998,7 @@ ol.interaction.SelectCluster = class olinteractionSelectCluster extends ol.inter
     // Start a new postcompose animation
     this.listenerKey_ = this.overlayLayer_.on(['postcompose', 'postrender'], animate.bind(this))
     // Start animation with a ghost feature
-    var feature = new ol.Feature(new ol.geoIDEE.Point(this.getMap().getView().getCenter()))
+    var feature = new ol.Feature(new ol.geom.Point(this.getMap().getView().getCenter()))
     feature.setStyle(new ol.style.Style({ image: new ol.style.Circle({}) }))
     this.overlayLayer_.getSource().addFeature(feature)
   }
@@ -28199,7 +28199,7 @@ ol.interaction.SnapGuides = class olinteractionSnapGuides extends ol.interaction
           else
             break
         }
-        return new ol.Feature(new ol.geoIDEE.LineString([g[0], g[g.length - 1]]))
+        return new ol.Feature(new ol.geom.LineString([g[0], g[g.length - 1]]))
       }
       var f0 = generateLine(1)
       var f1 = generateLine(-1)
@@ -28290,8 +28290,8 @@ ol.interaction.SnapGuides = class olinteractionSnapGuides extends ol.interaction
       }
       var f = e.target.getModifiedFeatures()[0]
       var geom = f.getGeometry()
-      var coord = geoIDEE.getCoordinates()
-      switch (geoIDEE.getType()) {
+      var coord = geom.getCoordinates()
+      switch (geom.getType()) {
         case 'Point':
           return
         case 'Polygon':
@@ -28330,7 +28330,7 @@ ol.interaction.SnapGuides = class olinteractionSnapGuides extends ol.interaction
   (http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.txt).
 */
 /** An interaction to snap on pixel on a layer
- * The CenterTouch interaction modifies map browser event coordinate and pixel properties to force pointer on the viewport center to any interaction that theIDEE.
+ * The CenterTouch interaction modifies map browser event coordinate and pixel properties to force pointer on the viewport center to any interaction that them.
  * @constructor
  * @extends {ol.interaction.Interaction}
  * @param {olx.interaction.InteractionOptions} options Options
@@ -28556,7 +28556,7 @@ ol.interaction.Split = class olinteractionSplit extends ol.interaction.Interacti
       var fi = si.getClosestFeatureToCoordinate(e.coordinate)
       if (fi && fi.getGeometry().splitAt) {
         var ci = fi.getGeometry().getClosestPoint(e.coordinate)
-        var gi = new ol.geoIDEE.LineString([e.coordinate, ci])
+        var gi = new ol.geom.LineString([e.coordinate, ci])
         var di = gi.getLength() / e.frameState.viewState.resolution
         if (di < d) {
           source = si
@@ -28639,7 +28639,7 @@ ol.interaction.Split = class olinteractionSplit extends ol.interaction.Interacti
       var p, l
       // Draw sketch
       this.overlayLayer_.getSource().addFeature(current.feature)
-      p = new ol.Feature(new ol.geoIDEE.Point(current.coord))
+      p = new ol.Feature(new ol.geom.Point(current.coord))
       p._sketch_ = true
       this.overlayLayer_.getSource().addFeature(p)
       //
@@ -29326,7 +29326,7 @@ ol.interaction.TouchCompass = class olinteractionTouchCompass extends ol.interac
 */
 /** Handle a touch cursor to defer event position on overlay position
  * It can be used as abstract base class used for creating subclasses. 
- * The TouchCursor interaction modifies map browser event coordinate and pixel properties to force pointer on the graphic cursor on the screen to any interaction that theIDEE.
+ * The TouchCursor interaction modifies map browser event coordinate and pixel properties to force pointer on the graphic cursor on the screen to any interaction that them.
  * @constructor
  * @extends {ol.interaction.DragOverlay}
  * @param {olx.interaction.InteractionOptions} options Options
@@ -30246,10 +30246,10 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
       var im = this.style[style][i].getImage()
       if (im) {
         if (style == 'rotate') {
-          iIDEE.getAnchor()[0] = -5
+          im.getAnchor()[0] = -5
         }
         if (this.isTouch)
-          iIDEE.setScale(1.8)
+          im.setScale(1.8)
       }
       var tx = this.style[style][i].getText()
       if (tx) {
@@ -30331,16 +30331,16 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
   /** Rotate feature from map view rotation
    * @param {ol.Feature} f the feature
    * @param {boolean} clone clone resulting geom
-   * @param {ol.geoIDEE.Geometry} rotated geometry
+   * @param {ol.geom.Geometry} rotated geometry
    */
   getGeometryRotateToZero_(f, clone) {
     var origGeom = f.getGeometry()
     var viewRotation = this.getMap().getView().getRotation()
     if (viewRotation === 0 || !this.get('enableRotatedTransform')) {
-      return (clone) ? origGeoIDEE.clone() : origGeom
+      return (clone) ? origGeom.clone() : origGeom
     }
-    var rotGeom = origGeoIDEE.clone()
-    rotGeoIDEE.rotate(viewRotation * -1, this.getMap().getView().getCenter())
+    var rotGeom = origGeom.clone()
+    rotGeom.rotate(viewRotation * -1, this.getMap().getView().getCenter())
     return rotGeom
   }
   /** Test if rectangle
@@ -30349,8 +30349,8 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
    * @private
    */
   _isRectangle(geom) {
-    if (this.get('keepRectangle') && geoIDEE.getType() === 'Polygon') {
-      var coords = geoIDEE.getCoordinates()[0]
+    if (this.get('keepRectangle') && geom.getType() === 'Polygon') {
+      var coords = geom.getCoordinates()[0]
       return coords.length === 5
     }
     return false
@@ -30382,10 +30382,10 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
       ptRadius = [ptRadius, ptRadius]
     if (center === true) {
       if (!this.ispt_) {
-        this.overlayLayer_.getSource().addFeature(new ol.Feature({ geometry: new ol.geoIDEE.Point(this.center_), handle: 'rotate0' }))
-        geom = ol.geoIDEE.Polygon.fromExtent(ext)
+        this.overlayLayer_.getSource().addFeature(new ol.Feature({ geometry: new ol.geom.Point(this.center_), handle: 'rotate0' }))
+        geom = ol.geom.Polygon.fromExtent(ext)
         if (this.get('enableRotatedTransform') && viewRotation !== 0) {
-          geoIDEE.rotate(viewRotation, this.getMap().getView().getCenter())
+          geom.rotate(viewRotation, this.getMap().getView().getCenter())
         }
         f = this.bbox_ = new ol.Feature(geom)
         this.overlayLayer_.getSource().addFeature(f)
@@ -30403,36 +30403,36 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
           ])
         }
       }
-      geom = keepRectangle ? new ol.geoIDEE.Polygon([coords]) : ol.geoIDEE.Polygon.fromExtent(ext)
+      geom = keepRectangle ? new ol.geom.Polygon([coords]) : ol.geom.Polygon.fromExtent(ext)
       if (this.get('enableRotatedTransform') && viewRotation !== 0) {
-        geoIDEE.rotate(viewRotation, this.getMap().getView().getCenter())
+        geom.rotate(viewRotation, this.getMap().getView().getCenter())
       }
       f = this.bbox_ = new ol.Feature(geom)
       var features = []
-      var g = geoIDEE.getCoordinates()[0]
+      var g = geom.getCoordinates()[0]
       if (!this.ispt_ || ptRadius) {
         features.push(f)
         // Middle
         if (!this.iscircle_ && !this.ispt_ && this.get('stretch') && this.get('scale'))
           for (i = 0; i < g.length - 1; i++) {
-            f = new ol.Feature({ geometry: new ol.geoIDEE.Point([(g[i][0] + g[i + 1][0]) / 2, (g[i][1] + g[i + 1][1]) / 2]), handle: 'scale', constraint: i % 2 ? "h" : "v", option: i })
+            f = new ol.Feature({ geometry: new ol.geom.Point([(g[i][0] + g[i + 1][0]) / 2, (g[i][1] + g[i + 1][1]) / 2]), handle: 'scale', constraint: i % 2 ? "h" : "v", option: i })
             features.push(f)
           }
         // Handles
         if (this.get('scale'))
           for (i = 0; i < g.length - 1; i++) {
-            f = new ol.Feature({ geometry: new ol.geoIDEE.Point(g[i]), handle: 'scale', option: i })
+            f = new ol.Feature({ geometry: new ol.geom.Point(g[i]), handle: 'scale', option: i })
             features.push(f)
           }
         // Center
         if (this.get('translate') && !this.get('translateFeature')) {
-          f = new ol.Feature({ geometry: new ol.geoIDEE.Point([(g[0][0] + g[2][0]) / 2, (g[0][1] + g[2][1]) / 2]), handle: 'translate' })
+          f = new ol.Feature({ geometry: new ol.geom.Point([(g[0][0] + g[2][0]) / 2, (g[0][1] + g[2][1]) / 2]), handle: 'translate' })
           features.push(f)
         }
       }
       // Rotate
       if (!this.iscircle_ && this.get('rotate')) {
-        f = new ol.Feature({ geometry: new ol.geoIDEE.Point(g[3]), handle: 'rotate' })
+        f = new ol.Feature({ geometry: new ol.geom.Point(g[3]), handle: 'rotate' })
         features.push(f)
       }
       // Add sketch
@@ -30536,12 +30536,12 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
         if (this.get('enableRotatedTransform') && viewRotation !== 0) {
           var rotGeom = this.getGeometryRotateToZero_(f, true)
           this.rotatedGeoms_.push(rotGeom)
-          rotExtent = ol.extent.extend(rotExtent, rotGeoIDEE.getExtent())
+          rotExtent = ol.extent.extend(rotExtent, rotGeom.getExtent())
         }
       }
-      this.extent_ = (ol.geoIDEE.Polygon.fromExtent(extent)).getCoordinates()[0]
+      this.extent_ = (ol.geom.Polygon.fromExtent(extent)).getCoordinates()[0]
       if (this.get('enableRotatedTransform') && viewRotation !== 0) {
-        this.rotatedExtent_ = (ol.geoIDEE.Polygon.fromExtent(rotExtent)).getCoordinates()[0]
+        this.rotatedExtent_ = (ol.geom.Polygon.fromExtent(rotExtent)).getCoordinates()[0]
       }
       if (this.mode_ === 'rotate') {
         this.center_ = this.getCenter() || ol.extent.getCenter(extent)
@@ -30671,10 +30671,10 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
         var downCoordinate = this.coordinate_
         var dragCoordinate = evt.coordinate
         if (this.get('enableRotatedTransform') && viewRotation !== 0) {
-          var downPoint = new ol.geoIDEE.Point(this.coordinate_)
+          var downPoint = new ol.geom.Point(this.coordinate_)
           downPoint.rotate(viewRotation * -1, center)
           downCoordinate = downPoint.getCoordinates()
-          var dragPoint = new ol.geoIDEE.Point(evt.coordinate)
+          var dragPoint = new ol.geom.Point(evt.coordinate)
           dragPoint.rotate(viewRotation * -1, center)
           dragCoordinate = dragPoint.getCoordinates()
         }
@@ -30682,7 +30682,7 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
         var scy = ((dragCoordinate)[1] - (center)[1]) / (downCoordinate[1] - (center)[1])
         var displacementVector = [dragCoordinate[0] - downCoordinate[0], (dragCoordinate)[1] - downCoordinate[1]]
         if (this.get('enableRotatedTransform') && viewRotation !== 0) {
-          var centerPoint = new ol.geoIDEE.Point(center)
+          var centerPoint = new ol.geom.Point(center)
           centerPoint.rotate(viewRotation * -1, this.getMap().getView().getCenter())
           center = centerPoint.getCoordinates()
         }
@@ -30881,7 +30881,7 @@ ol.interaction.Transform = class olinteractionTransform extends ol.interaction.P
 }
 /** Cursors for transform
 */
-ol.interaction.TransforIDEE.prototype.Cursors = {
+ol.interaction.Transform.prototype.Cursors = {
   'default': 'auto',
   'select': 'pointer',
   'translate': 'move',
@@ -31369,7 +31369,7 @@ ol.interaction.UndoRedo.prototype._onInteraction.modifystart = function (e) {
     this._undoStack.push({ 
       type: 'changegeometry', 
       feature: m, 
-      oldGeom: IDEE.getGeometry().clone() 
+      oldGeom: m.getGeometry().clone() 
     });
   }.bind(this));
   this.blockEnd();
@@ -31406,7 +31406,7 @@ ol.interaction.UndoRedo.prototype.blockEnd;
  * @param {Object} options ol.source.VectorOptions + grid option
  *  @param {ol.source.Vector} options.source Source
  *  @param {boolean} options.listenChange listen changes (move) on source features to recalculate the bin, default true
- *  @param {fucntion} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geoIDEE.Point as feature's center.
+ *  @param {fucntion} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geom.Point as feature's center.
  *  @param {function} [options.flatAttributes] Function takes a bin and the features it contains and aggragate the features in the bin attributes when saving
  */
 ol.source.BinBase = class olsourceBinBase extends ol.source.Vector {
@@ -31509,11 +31509,11 @@ ol.source.BinBase = class olsourceBinBase extends ol.source.Vector {
   /** Get the grid geometry at the coord
    * @param {ol.Coordinate} coord
    * @param {Object} attributes add key/value to this object to add properties to the grid feature
-   * @returns {ol.geoIDEE.Polygon}
+   * @returns {ol.geom.Polygon}
    * @api
    */
   getGridGeomAt(coord /*, attributes */) {
-    return new ol.geoIDEE.Polygon([coord]);
+    return new ol.geom.Polygon([coord]);
   }
   /** Get the bean at a coord
    * @param {ol.Coordinate} coord
@@ -31715,7 +31715,7 @@ ol.source.DBPedia = class olsourceDBPedia extends ol.source.Vector {
         for (var i in bindings) {
           att = bindings[i]
           pt = [Number(bindings[i].long.value), Number(bindings[i].lat.value)]
-          feature = new ol.Feature(new ol.geoIDEE.Point(ol.proj.transform(pt, "EPSG:4326", projection)))
+          feature = new ol.Feature(new ol.geom.Point(ol.proj.transform(pt, "EPSG:4326", projection)))
           if (self.readFeature(feature, att, lastfeature)) {
             features.push(feature)
             lastfeature = feature
@@ -31878,7 +31878,7 @@ ol.source.DFCI = class olsourceDFCI extends ol.source.Vector {
    * @private
    */
   _trFeature(geom, id, level, projection) {
-    var g = new ol.geoIDEE.Polygon([geom])
+    var g = new ol.geom.Polygon([geom])
     var f = new ol.Feature(g.transform('EPSG:27572', projection))
     f.set('id', id)
     f.set('level', level)
@@ -31910,7 +31910,7 @@ ol.source.DFCI = class olsourceDFCI extends ol.source.Vector {
           var m = this._midPt(geom[0], geom[2])
           // .5
           var g = []
-          for (i = 0; i < geoIDEE.length; i++) {
+          for (i = 0; i < geom.length; i++) {
             g.push(this._midPt(geom[i], m))
           }
           features.push(this._trFeature(g, ol.coordinate.toDFCI([x, y], 2) + '.5', level, projection))
@@ -32044,8 +32044,8 @@ ol.source.DayNight = class olsourceDayNight extends ol.source.Vector {
    */
   _loader(extent, resolution, projection) {
     var lonlat = this.getCoordinates(this.get('time'));
-    var geom = new ol.geoIDEE.Polygon([lonlat]);
-    geoIDEE.transform('EPSG:4326', projection);
+    var geom = new ol.geom.Polygon([lonlat]);
+    geom.transform('EPSG:4326', projection);
     this.addFeature(new ol.Feature(geom));
   }
   /** Set source date time
@@ -32164,7 +32164,7 @@ ol.source.Delaunay = class olsourceDelaunay extends ol.source.Vector {
    */
   _addTriangle(pts) {
     pts.push(pts[0])
-    var triangle = new ol.Feature(new ol.geoIDEE.Polygon([pts]))
+    var triangle = new ol.Feature(new ol.geom.Polygon([pts]))
     this.addFeature(triangle)
     this.flip.push(triangle)
     return triangle
@@ -32321,7 +32321,7 @@ ol.source.Delaunay = class olsourceDelaunay extends ol.source.Vector {
     var ul = $('ul.triangles').html('');
     $('<li>')
     .text('E:'+this.listpt(enveloppe)+' - '+clock+' - '+closed)
-    .data('triangle', new ol.Feature(new ol.geoIDEE.Polygon([enveloppe])))
+    .data('triangle', new ol.Feature(new ol.geom.Polygon([enveloppe])))
     .click(function(){
       var t = $(this).data('triangle');
       select.getFeatures().clear();
@@ -32574,7 +32574,7 @@ ol.source.Delaunay = class olsourceDelaunay extends ol.source.Vector {
   }
   /** Get Voronoi
    * @param {boolean} border include border, default false
-   * @return { Array< ol.geoIDEE.Polygon > }
+   * @return { Array< ol.geom.Polygon > }
    */
   calculateVoronoi(border) {
     var voronoi = []
@@ -32606,7 +32606,7 @@ ol.source.Delaunay = class olsourceDelaunay extends ol.source.Vector {
         })
         poly.push(poly[0])
         var prop = f.getProperties()
-        prop.geometry = new ol.geoIDEE.Polygon([poly])
+        prop.geometry = new ol.geom.Polygon([poly])
         voronoi.push(new ol.Feature(prop))
       }
     }.bind(this))
@@ -32627,7 +32627,7 @@ ol.source.Delaunay = class olsourceDelaunay extends ol.source.Vector {
  *  @param {ol.source.Vector} options.binSource a source to use as bin collector, default none
  *  @param {Array<ol.Feature>} options.features the features, ignored if binSource is provided, default none
  *  @param {number} [options.size] size of the grid in meter, default 200m
- *  @param {function} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geoIDEE.Point as feature's center.
+ *  @param {function} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geom.Point as feature's center.
  *  @param {function} [options.flatAttributes] Function takes a bin and the features it contains and aggragate the features in the bin attributes when saving
  */
 ol.source.FeatureBin = class olsourceFeatureBin extends ol.source.BinBase {
@@ -32663,7 +32663,7 @@ ol.source.FeatureBin = class olsourceFeatureBin extends ol.source.BinBase {
   }
   /** Get the grid geometry at the coord
    * @param {ol.Coordinate} coord
-   * @returns {ol.geoIDEE.Polygon}
+   * @returns {ol.geom.Polygon}
    * @api
    */
   getGridGeomAt(coord, attributes) {
@@ -32861,7 +32861,7 @@ ol.source.GeoImage = class olsourceGeoImage extends ol.source.ImageCanvas {
   }
   /**
    * Set image mask.
-   * @param {ol.geoIDEE.LineString} coords of the mask
+   * @param {ol.geom.LineString} coords of the mask
    * @api stable
    */
   setMask(mask) {
@@ -32870,7 +32870,7 @@ ol.source.GeoImage = class olsourceGeoImage extends ol.source.ImageCanvas {
   }
   /**
    * Get image mask.
-   * @return {ol.geoIDEE.LineString} coords of the mask
+   * @return {ol.geom.LineString} coords of the mask
    * @api stable
    */
   getMask() {
@@ -32932,7 +32932,7 @@ ol.source.GeoImage = class olsourceGeoImage extends ol.source.ImageCanvas {
   calculateExtent(usemask) {
     var polygon
     if (usemask !== false && this.getMask()) {
-      polygon = new ol.geoIDEE.Polygon([this.getMask()])
+      polygon = new ol.geom.Polygon([this.getMask()])
     } else {
       var center = this.getCenter()
       var scale = this.getScale()
@@ -32942,7 +32942,7 @@ ol.source.GeoImage = class olsourceGeoImage extends ol.source.ImageCanvas {
         [center[0] - width / 2, center[1] - height / 2],
         [center[0] + width / 2, center[1] + height / 2]
       ])
-      polygon = ol.geoIDEE.Polygon.fromExtent(extent)
+      polygon = ol.geom.Polygon.fromExtent(extent)
       polygon.rotate(-this.getRotation(), center)
     }
     var ext = polygon.getExtent()
@@ -33205,7 +33205,7 @@ ol.source.Geoportail.getServiceURL = function(server, gppKey) {
  * @param {Object} options ol.source.VectorOptions + grid option
  *  @param {ol.source.Vector} options.source Source
  *  @param {number} [options.size] size of the grid in meter, default 200m
- *  @param {function} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geoIDEE.Point as feature's center.
+ *  @param {function} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geom.Point as feature's center.
  *  @param {function} [options.flatAttributes] Function takes a bin and the features it contains and aggragate the features in the bin attributes when saving
  */
 ol.source.GridBin = class olsourceGridBin extends ol.source.BinBase {
@@ -33232,7 +33232,7 @@ ol.source.GridBin = class olsourceGridBin extends ol.source.BinBase {
   }
   /** Get the grid geometry at the coord
    * @param {ol.Coordinate} coord
-   * @returns {ol.geoIDEE.Polygon}
+   * @returns {ol.geom.Polygon}
    * @api
    */
   getGridGeomAt(coord) {
@@ -33240,8 +33240,8 @@ ol.source.GridBin = class olsourceGridBin extends ol.source.BinBase {
     var size = this.get('size');
     var x = size * Math.floor(coord[0] / size);
     var y = size * Math.floor(coord[1] / size);
-    var geom = new ol.geoIDEE.Polygon([[[x, y], [x + size, y], [x + size, y + size], [x, y + size], [x, y]]]);
-    return geoIDEE.transform(this.get('gridProjection'), this.getProjection() || 'EPSG:3857');
+    var geom = new ol.geom.Polygon([[[x, y], [x + size, y], [x + size, y + size], [x, y + size], [x, y]]]);
+    return geom.transform(this.get('gridProjection'), this.getProjection() || 'EPSG:3857');
   }
 }
 
@@ -33257,7 +33257,7 @@ ol.source.GridBin = class olsourceGridBin extends ol.source.BinBase {
  *  @param {number} [options.size] size of the hexagon in map units, default 80000
  *  @param {ol.coordinate} [options.origin] origin of the grid, default [0,0]
  *  @param {HexagonLayout} [options.layout] grid layout, default pointy
- *  @param {function} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geoIDEE.Point as feature's center.
+ *  @param {function} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geom.Point as feature's center.
  *  @param {function} [options.flatAttributes] Function takes a bin and the features it contains and aggragate the features in the bin attributes when saving
  */
 ol.source.HexBin = class olsourceHexBin extends ol.source.BinBase {
@@ -33273,12 +33273,12 @@ ol.source.HexBin = class olsourceHexBin extends ol.source.BinBase {
   }
   /** Get the hexagon geometry at the coord
    * @param {ol.Coordinate} coord
-   * @returns {ol.geoIDEE.Polygon}
+   * @returns {ol.geom.Polygon}
    * @api
    */
   getGridGeomAt(coord) {
     var h = this._hexgrid.coord2hex(coord);
-    return new ol.geoIDEE.Polygon([this._hexgrid.getHexagon(h)]);
+    return new ol.geom.Polygon([this._hexgrid.getHexagon(h)]);
   }
   /**	Set the inner HexGrid size.
    * 	@param {number} newSize
@@ -33568,7 +33568,7 @@ ol.source.IDW = class olsourceIDW extends ol.source.ImageCanvas {
  * @param {Object} options ol.source.VectorOptions + grid option
  *  @param {ol.source.Vector} options.source Source
  *  @param {number} [options.size] size of the grid in meter, default 200m
- *  @param {function} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geoIDEE.Point as feature's center.
+ *  @param {function} [options.geometryFunction] Function that takes an ol.Feature as argument and returns an ol.geom.Point as feature's center.
  *  @param {function} [options.flatAttributes] Function takes a bin and the features it contains and aggragate the features in the bin attributes when saving
  */
 ol.source.InseeBin = class olsourceInseeBin extends ol.source.BinBase {
@@ -33595,7 +33595,7 @@ ol.source.InseeBin = class olsourceInseeBin extends ol.source.BinBase {
   }
   /** Get the grid geometry at the coord
    * @param {ol.Coordinate} coord
-   * @returns {ol.geoIDEE.Polygon}
+   * @returns {ol.geom.Polygon}
    * @api
    */
   getGridGeomAt(coord) {
@@ -33700,7 +33700,7 @@ ol.source.Mapillary = class olsourceMapillary extends ol.source.Vector {
                       continue;
                   }
               }
-              feature = new ol.Feature(new ol.geoIDEE.Point(ol.proj.transform (pt,"EPSG:4326",projection)));
+              feature = new ol.Feature(new ol.geom.Point(ol.proj.transform (pt,"EPSG:4326",projection)));
               att.imageinfo[0].title = att.title;
               if (self.readFeature(feature, att.imageinfo[0]))
               {	features.push(feature);
@@ -33843,7 +33843,7 @@ ol.source.Overpass = class olsourceOverpass extends ol.source.Vector {
     }
     /** Default attribution */
     if (!options.attributions) {
-      options.attributions = ol.source.OSIDEE.ATTRIBUTION
+      options.attributions = ol.source.OSm.ATTRIBUTION
     }
     // Bbox strategy : reload at each move
     if (!options.strategy)
@@ -34282,8 +34282,8 @@ ol.layer.Vector3D = class ollayerVector3D extends ol.layer.Image {
    */
   getFeature3D_(f, h) {
     var geom = this.get('geometry')(f)
-    var c = geoIDEE.getCoordinates()
-    switch (geoIDEE.getType()) {
+    var c = geom.getCoordinates()
+    switch (geom.getType()) {
       case "Polygon":
         c = [c]
       // fallthrough
@@ -34313,7 +34313,7 @@ ol.layer.Vector3D = class ollayerVector3D extends ol.layer.Image {
     for (i = 0; i < build.length; i++) {
       switch (build[i].type) {
         case "MultiPolygon": {
-          for (j = 0; j < build[i].geoIDEE.length; j++) {
+          for (j = 0; j < build[i].geom.length; j++) {
             b = build[i].geom[j]
             for (k = 0; k < b.length; k++) {
               ctx.beginPath()
@@ -34340,7 +34340,7 @@ ol.layer.Vector3D = class ollayerVector3D extends ol.layer.Image {
       switch (build[i].type) {
         case "MultiPolygon": {
           ctx.beginPath()
-          for (j = 0; j < build[i].geoIDEE.length; j++) {
+          for (j = 0; j < build[i].geom.length; j++) {
             b = build[i].geom[j]
             if (j == 0) {
               ctx.moveTo(b[0].p1[0], b[0].p1[1])
@@ -34363,11 +34363,11 @@ ol.layer.Vector3D = class ollayerVector3D extends ol.layer.Image {
           b = build[i]
           var t = b.feature.get('label')
           if (t) {
-            var p = b.geoIDEE.p1
+            var p = b.geom.p1
             var m = ctx.measureText(t)
             var h = Number(ctx.font.match(/\d+(\.\d+)?/g).join([]))
-            ctx.fillRect(p[0] - IDEE.width / 2 - 5, p[1] - h - 5, IDEE.width + 10, h + 10)
-            ctx.strokeRect(p[0] - IDEE.width / 2 - 5, p[1] - h - 5, IDEE.width + 10, h + 10)
+            ctx.fillRect(p[0] - m.width / 2 - 5, p[1] - h - 5, m.width + 10, h + 10)
+            ctx.strokeRect(p[0] - m.width / 2 - 5, p[1] - h - 5, m.width + 10, h + 10)
             ctx.save()
             ctx.fillStyle = ol.color.asString(this._style.getText().getFill().getColor())
             ctx.textAlign = 'center'
@@ -34482,7 +34482,7 @@ ol.source.WikiCommons = class olsourceWikiCommons extends ol.source.Vector {
               continue
             }
           }
-          feature = new ol.Feature(new ol.geoIDEE.Point(ol.proj.transform(pt, "EPSG:4326", projection)))
+          feature = new ol.Feature(new ol.geom.Point(ol.proj.transform(pt, "EPSG:4326", projection)))
           att.imageinfo[0].title = att.title
           if (self.readFeature(feature, att.imageinfo[0])) {
             features.push(feature)
@@ -34655,7 +34655,7 @@ ol.layer.AnimatedCluster = class ollayerAnimatedCluster extends ol.layer.Vector 
         }
         // else draw a point
         else {
-          var geo = new ol.geoIDEE.Point(pt)
+          var geo = new ol.geom.Point(pt)
           f = new ol.Feature(geo)
         }
         for (var k = 0, s; s = st[k]; k++) {
@@ -34990,8 +34990,8 @@ ol.layer.GeoImage = class ollayerGeoImage extends ol.layer.Image {
         max: parseFloat(z[0].TileMatrix)
       }
       for (var k=1; k<z.length; k++) {
-        zooIDEE.min = Math.min(zooIDEE.min, parseFloat(z[k].TileMatrix));
-        zooIDEE.max = Math.max(zooIDEE.max, parseFloat(z[k].TileMatrix));
+        zoom.min = Math.min(zoom.min, parseFloat(z[k].TileMatrix));
+        zoom.max = Math.max(zoom.max, parseFloat(z[k].TileMatrix));
       }
       return zoom;
     }
@@ -35047,8 +35047,8 @@ ol.layer.GeoImage = class ollayerGeoImage extends ol.layer.Image {
             server: server,
             bbox: l.WGS84BoundingBox,
             format: l.Format[0],
-            minZoom: zooIDEE.min,
-            maxZoom: zooIDEE.max,
+            minZoom: zoom.min,
+            maxZoom: zoom.max,
             originators: { 'Geoservices': { attribution: 'Géoservices', href: 'https://geoservices.ign.fr/' } },
             queryable: layersInfo[i].getElementsByTagName('InfoFormat').length > 0,
             style: (l.Style && l.Style.length ? l.Style[0].Identifier : 'normal'),
@@ -35400,13 +35400,13 @@ ol.layer.Vector.prototype.setRender3D = function (r) {
  *  3D vector layer rendering
  * @constructor
  * @param {Object} param
- *  @param {ol.layer.Vector} paraIDEE.layer the layer to display in 3D
+ *  @param {ol.layer.Vector} param.layer the layer to display in 3D
  *  @param {ol.style.Style} options.style drawing style
- *  @param {function|boolean} paraIDEE.active a function that returns a boolean or a boolean ,default true
- *  @param {boolean} paraIDEE.ghost use ghost style
- *  @param {number} paraIDEE.maxResolution  max resolution to render 3D
- *  @param {number} paraIDEE.defaultHeight default height if none is return by a propertie
- *  @param {function|string|Number} paraIDEE.height a height function (returns height giving a feature) or a popertie name for the height or a fixed value
+ *  @param {function|boolean} param.active a function that returns a boolean or a boolean ,default true
+ *  @param {boolean} param.ghost use ghost style
+ *  @param {number} param.maxResolution  max resolution to render 3D
+ *  @param {number} param.defaultHeight default height if none is return by a propertie
+ *  @param {function|string|Number} param.height a height function (returns height giving a feature) or a popertie name for the height or a fixed value
  */
 ol.render3D = class olrender3D extends ol.Object {
   constructor(options) {
@@ -35553,9 +35553,9 @@ ol.render3D = class olrender3D extends ol.Object {
   }
   /** Animate rendering
    * @param {olx.render3D.animateOptions}
-   *  @param {string|function|number} paraIDEE.height an attribute name or a function returning height of a feature or a fixed value
-   *  @param {number} paraIDEE.duration the duration of the animatioin ms, default 1000
-   *  @param {ol.easing} paraIDEE.easing an ol easing function
+   *  @param {string|function|number} param.height an attribute name or a function returning height of a feature or a fixed value
+   *  @param {number} param.duration the duration of the animatioin ms, default 1000
+   *  @param {ol.easing} param.easing an ol easing function
    *	@api
    */
   animate(options) {
@@ -35627,8 +35627,8 @@ ol.render3D = class olrender3D extends ol.Object {
    */
   getFeature3D_(f, h) {
     var geom = this.get('geometry')(f)
-    var c = geoIDEE.getCoordinates()
-    switch (geoIDEE.getType()) {
+    var c = geom.getCoordinates()
+    switch (geom.getType()) {
       case "Polygon":
         c = [c]
       // fallthrough
@@ -35660,7 +35660,7 @@ ol.render3D = class olrender3D extends ol.Object {
     for (i = 0; i < build.length; i++) {
       switch (build[i].type) {
         case "MultiPolygon": {
-          for (j = 0; j < build[i].geoIDEE.length; j++) {
+          for (j = 0; j < build[i].geom.length; j++) {
             b = build[i].geom[j]
             for (k = 0; k < b.length; k++) {
               ctx.beginPath()
@@ -35687,7 +35687,7 @@ ol.render3D = class olrender3D extends ol.Object {
       switch (build[i].type) {
         case "MultiPolygon": {
           ctx.beginPath()
-          for (j = 0; j < build[i].geoIDEE.length; j++) {
+          for (j = 0; j < build[i].geom.length; j++) {
             b = build[i].geom[j]
             if (j == 0) {
               ctx.moveTo(b[0].p1[0], b[0].p1[1])
@@ -35710,7 +35710,7 @@ ol.render3D = class olrender3D extends ol.Object {
           b = build[i]
           var t = b.feature.get('label')
           if (t) {
-            var p = b.geoIDEE.p1
+            var p = b.geom.p1
             var f = ctx.fillStyle
             ctx.fillStyle = ctx.strokeStyle
             ctx.textAlign = 'center'
@@ -35719,8 +35719,8 @@ ol.render3D = class olrender3D extends ol.Object {
             var m = ctx.measureText(t)
             var h = Number(ctx.font.match(/\d+(\.\d+)?/g).join([]))
             ctx.fillStyle = "rgba(255,255,255,0.5)"
-            ctx.fillRect(p[0] - IDEE.width / 2 - 5, p[1] - h - 5, IDEE.width + 10, h + 10)
-            ctx.strokeRect(p[0] - IDEE.width / 2 - 5, p[1] - h - 5, IDEE.width + 10, h + 10)
+            ctx.fillRect(p[0] - m.width / 2 - 5, p[1] - h - 5, m.width + 10, h + 10)
+            ctx.strokeRect(p[0] - m.width / 2 - 5, p[1] - h - 5, m.width + 10, h + 10)
             ctx.fillStyle = f
             //console.log(build[i].feature.getProperties())
           }
@@ -35739,7 +35739,7 @@ ol.render3D = class olrender3D extends ol.Object {
     for (i = 0; i < build.length; i++) {
       switch (build[i].type) {
         case "MultiPolygon": {
-          for (j = 0; j < build[i].geoIDEE.length; j++) {
+          for (j = 0; j < build[i].geom.length; j++) {
             b = build[i].geom[j]
             for (k = 0; k < b.length - 1; k++) {
               ctx.beginPath()
@@ -35840,14 +35840,14 @@ ol.layer.SketchOverlay = class ollayerSketchOverlay extends ol.layer.Vector {
     this.getSource().addFeatures([
       new ol.Feature({
         sketch: true,
-        geometry: new ol.geoIDEE.Point([])
+        geometry: new ol.geom.Point([])
       }),
       new ol.Feature({
         sketch: true,
-        geometry: new ol.geoIDEE.LineString([])
+        geometry: new ol.geom.LineString([])
       }),
       new ol.Feature(),
-      new ol.Feature(new ol.geoIDEE.Point([]))
+      new ol.Feature(new ol.geom.Point([]))
     ])
     this.setGeometryType(options.type)
   }
@@ -35875,17 +35875,17 @@ ol.layer.SketchOverlay = class ollayerSketchOverlay extends ol.layer.Vector {
    */
   addPoint(coord) {
     if (this._lastCoord !== this._position) {
-      if (!this._geoIDEE.length) {
+      if (!this._geom.length) {
         this.startDrawing()
       }
-      this._geoIDEE.push(coord)
+      this._geom.push(coord)
       this._lastCoord = coord
       this._position = coord
       this.drawSketch()
       if (this.getGeometryType() === 'Point') {
         this.finishDrawing()
       }
-      if (this.getGeometryType() === 'Circle' && this._geoIDEE.length >= 2) {
+      if (this.getGeometryType() === 'Circle' && this._geom.length >= 2) {
         this.finishDrawing()
       }
       return true
@@ -35895,8 +35895,8 @@ ol.layer.SketchOverlay = class ollayerSketchOverlay extends ol.layer.Vector {
   /** Remove the last Point from the sketch
    */
   removeLastPoint() {
-    this._geoIDEE.pop()
-    this._lastCoord = this._geom[this._geoIDEE.length - 1]
+    this._geom.pop()
+    this._lastCoord = this._geom[this._geom.length - 1]
     this.drawSketch()
   }
   /** Strat a new drawing
@@ -35929,11 +35929,11 @@ ol.layer.SketchOverlay = class ollayerSketchOverlay extends ol.layer.Vector {
     switch (this.getGeometryType()) {
       case 'Circle':
       case 'LineString': {
-        isvalid = this._geoIDEE.length > 1
+        isvalid = this._geom.length > 1
         break
       }
       case 'Polygon': {
-        isvalid = this._geoIDEE.length > 2
+        isvalid = this._geom.length > 2
         break
       }
     }
@@ -35989,20 +35989,20 @@ ol.layer.SketchOverlay = class ollayerSketchOverlay extends ol.layer.Vector {
       } else {
         features[0].getGeometry().setCoordinates(this._position)
       }
-      if (this._geoIDEE.length) {
+      if (this._geom.length) {
         if (this.getGeometryType() === 'Circle') {
-          features[1].setGeometry(new ol.geoIDEE.Circle(this._geom[0], ol.coordinate.dist2d(this._geom[0], this._position)))
+          features[1].setGeometry(new ol.geom.Circle(this._geom[0], ol.coordinate.dist2d(this._geom[0], this._position)))
         } else if (this.getGeometryType() === 'Polygon') {
-          features[1].setGeometry(new ol.geoIDEE.LineString([this._lastCoord, this._position, this._geom[0]]))
+          features[1].setGeometry(new ol.geom.LineString([this._lastCoord, this._position, this._geom[0]]))
         } else {
-          features[1].setGeometry(new ol.geoIDEE.LineString([this._lastCoord, this._position]))
+          features[1].setGeometry(new ol.geom.LineString([this._lastCoord, this._position]))
         }
       } else {
-        features[1].setGeometry(new ol.geoIDEE.LineString([]))
+        features[1].setGeometry(new ol.geom.LineString([]))
       }
     } else {
       features[0].getGeometry().setCoordinates([])
-      features[1].setGeometry(new ol.geoIDEE.LineString([]))
+      features[1].setGeometry(new ol.geom.LineString([]))
     }
   }
   /** Get current feature
@@ -36015,42 +36015,42 @@ ol.layer.SketchOverlay = class ollayerSketchOverlay extends ol.layer.Vector {
   drawSketch() {
     this.drawLink()
     var features = this.getSource().getFeatures()
-    if (!this._geoIDEE.length) {
+    if (!this._geom.length) {
       features[2].setGeometry(null)
-      features[3].setGeometry(new ol.geoIDEE.Point([]))
+      features[3].setGeometry(new ol.geom.Point([]))
     } else {
       if (!this._lastCoord)
-        this._lastCoord = this._geom[this._geoIDEE.length - 1]
+        this._lastCoord = this._geom[this._geom.length - 1]
       features[3].getGeometry().setCoordinates(this._lastCoord)
       switch (this._type) {
         case 'Point': {
-          features[2].setGeometry(new ol.geoIDEE.Point(this._lastCoord))
+          features[2].setGeometry(new ol.geom.Point(this._lastCoord))
           break
         }
         case 'Circle': {
           if (!features[2].getGeometry()) {
-            features[2].setGeometry(new ol.geoIDEE.Circle(this._geom[0], ol.coordinate.dist2d(this._geom[0], this._geom[this._geoIDEE.length - 1])))
+            features[2].setGeometry(new ol.geom.Circle(this._geom[0], ol.coordinate.dist2d(this._geom[0], this._geom[this._geom.length - 1])))
           } else {
-            features[2].getGeometry().setRadius(ol.coordinate.dist2d(this._geom[0], this._geom[this._geoIDEE.length - 1]))
+            features[2].getGeometry().setRadius(ol.coordinate.dist2d(this._geom[0], this._geom[this._geom.length - 1]))
           }
           break
         }
         case 'LineString': {
           if (!features[2].getGeometry()) {
-            features[2].setGeometry(new ol.geoIDEE.LineString(this._geom))
+            features[2].setGeometry(new ol.geom.LineString(this._geom))
           } else {
             features[2].getGeometry().setCoordinates(this._geom)
           }
           break
         }
         case 'Polygon': {
-          this._geoIDEE.push(this._geom[0])
+          this._geom.push(this._geom[0])
           if (!features[2].getGeometry()) {
-            features[2].setGeometry(new ol.geoIDEE.Polygon([this._geom]))
+            features[2].setGeometry(new ol.geom.Polygon([this._geom]))
           } else {
             features[2].getGeometry().setCoordinates([this._geom])
           }
-          this._geoIDEE.pop()
+          this._geom.pop()
           break
         }
         default: {
@@ -37509,7 +37509,7 @@ ol.Overlay.FixedPopup = class olOverlayFixedPopup extends ol.Overlay.Popup {
       this.set('rotation', angle)
     if (update !== false) {
       if (/rotate/.test(this.element.style.transform)) {
-        this.element.style.transform = this.element.style.transforIDEE.replace(/rotate\((-?[\d,.]+)deg\)/, 'rotate(' + (this.get('rotation') || 0) + 'deg)')
+        this.element.style.transform = this.element.style.transform.replace(/rotate\((-?[\d,.]+)deg\)/, 'rotate(' + (this.get('rotation') || 0) + 'deg)')
       } else {
         this.element.style.transform = this.element.style.transform + ' rotate(' + (this.get('rotation') || 0) + 'deg)'
       }
@@ -37527,7 +37527,7 @@ ol.Overlay.FixedPopup = class olOverlayFixedPopup extends ol.Overlay.Popup {
     this.set('scale', scale)
     if (update !== false) {
       if (/scale/.test(this.element.style.transform)) {
-        this.element.style.transform = this.element.style.transforIDEE.replace(/scale\(([\d,.]+)\)/, 'scale(' + (scale) + ')')
+        this.element.style.transform = this.element.style.transform.replace(/scale\(([\d,.]+)\)/, 'scale(' + (scale) + ')')
       } else {
         this.element.style.transform = this.element.style.transform + ' scale(' + (scale) + ')'
       }
@@ -38230,9 +38230,9 @@ ol.Overlay.Tooltip = class olOverlayTooltip extends ol.Overlay.Popup {
       this._listener.push(feature.getGeometry().on('change', function (e) {
         var geom = e.target;
         var measure;
-        if (geoIDEE.getArea) {
+        if (geom.getArea) {
           measure = this.formatArea(ol.sphere.getArea(geom, { projection: this.getMap().getView().getProjection() }));
-        } else if (geoIDEE.getLength) {
+        } else if (geom.getLength) {
           measure = this.formatLength(ol.sphere.getLength(geom, { projection: this.getMap().getView().getProjection() }));
         }
         this.set('measure', measure);
@@ -38244,7 +38244,7 @@ ol.Overlay.Tooltip = class olOverlayTooltip extends ol.Overlay.Popup {
 /*
 	Copyright (c) 2017 Jean-Marc VIGLINO,
 	released under the CeCILL-B license (http://www.cecill.info/).
-	ol.coordinate.convexHull compute a convex hull using Andrew's Monotone Chain AlgorithIDEE.
+	ol.coordinate.convexHull compute a convex hull using Andrew's Monotone Chain Algorithm.
 	@see https://en.wikipedia.org/wiki/Convex_hull_algorithms
 */
 ol.coordinate.convexHull;
@@ -38259,8 +38259,8 @@ var clockwise = function (a, b, o) {
   return ((a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]) <= 0);
 };
 /** Compute a convex hull using Andrew's Monotone Chain Algorithm
- * @param {Array<ol.geoIDEE.Point>} points an array of 2D points
- * @return {Array<ol.geoIDEE.Point>} the convex hull vertices
+ * @param {Array<ol.geom.Point>} points an array of 2D points
+ * @return {Array<ol.geom.Point>} the convex hull vertices
  */
 ol.coordinate.convexHull = function (points) {	// Sort by increasing x and then y coordinate
   var i;
@@ -38291,26 +38291,26 @@ ol.coordinate.convexHull = function (points) {	// Sort by increasing x and then 
 var getCoordinates = function (geom) {
   var i, p
   var h = [];
-  switch (geoIDEE.getType()) {
-    case "Point":h.push(geoIDEE.getCoordinates());
+  switch (geom.getType()) {
+    case "Point":h.push(geom.getCoordinates());
       break;
     case "LineString":
     case "LinearRing":
-    case "MultiPoint":h = geoIDEE.getCoordinates();
+    case "MultiPoint":h = geom.getCoordinates();
       break;
     case "MultiLineString":
-      p = geoIDEE.getLineStrings();
+      p = geom.getLineStrings();
       for (i = 0; i < p.length; i++) h.concat(getCoordinates(p[i]));
       break;
     case "Polygon":
-      h = getCoordinates(geoIDEE.getLinearRing(0));
+      h = getCoordinates(geom.getLinearRing(0));
       break;
     case "MultiPolygon":
-      p = geoIDEE.getPolygons();
+      p = geom.getPolygons();
       for (i = 0; i < p.length; i++) h.concat(getCoordinates(p[i]));
       break;
     case "GeometryCollection":
-      p = geoIDEE.getGeometries();
+      p = geom.getGeometries();
       for (i = 0; i < p.length; i++) h.concat(getCoordinates(p[i]));
       break;
     default:break;
@@ -38318,9 +38318,9 @@ var getCoordinates = function (geom) {
   return h;
 };
 /** Compute a convex hull on a geometry using Andrew's Monotone Chain Algorithm
- * @return {Array<ol.geoIDEE.Point>} the convex hull vertices
+ * @return {Array<ol.geom.Point>} the convex hull vertices
  */
-ol.geoIDEE.Geometry.prototype.convexHull = function() {
+ol.geom.Geometry.prototype.convexHull = function() {
   return ol.coordinate.convexHull(getCoordinates(this));
 };
 })();
@@ -38563,9 +38563,9 @@ ol.graph.Dijkstra = class olgraphDijskra extends ol.Object {
    * @api
    */
   getLength(geom) {
-    if (geoIDEE.getGeometry)
-      geom = geoIDEE.getGeometry();
-    return geoIDEE.getLength();
+    if (geom.getGeometry)
+      geom = geom.getGeometry();
+    return geom.getLength();
   }
   /** Get the nodes source concerned in the calculation
    * @return {ol/source/Vector}
@@ -38612,7 +38612,7 @@ ol.graph.Dijkstra = class olgraphDijskra extends ol.Object {
     // Look for existing point
     var node = this.getNode(p);
     // Optimisation ?
-    var dtotal = wdist + this.getLength(new ol.geoIDEE.LineString([this.end, p])) * this.weight();
+    var dtotal = wdist + this.getLength(new ol.geom.LineString([this.end, p])) * this.weight();
     if (this.astar && this.wdist && dtotal > this.wdist)
       return false;
     if (node) {
@@ -38632,7 +38632,7 @@ ol.graph.Dijkstra = class olgraphDijskra extends ol.Object {
     } else {
       // New candidat
       node = new ol.Feature({
-        geometry: new ol.geoIDEE.Point(p),
+        geometry: new ol.geom.Point(p),
         from: from,
         prev: prev,
         dist: dist || 0,
@@ -38821,7 +38821,7 @@ ol.graph.Dijkstra = class olgraphDijskra extends ol.Object {
 ol.graph.Dijskra = ol.graph.Dijkstra
 
 /** French Geoportail alti coding
- * @param {ol.geoIDEE.Geometry} geom
+ * @param {ol.geom.Geometry} geom
  * @param {Object} options
  *  @param {ol/proj~ProjectionLike} [options.projection='EPSG:3857'] geometry projection, default 'EPSG:3857'
  *  @param {number} [options.sampling=0] number of resulting point, max 5000, if none keep input points or use samplingDist
@@ -38830,9 +38830,9 @@ ol.graph.Dijskra = ol.graph.Dijkstra
  *  @param {string} options.success a function that takes the resulting XYZ geometry
  *  @param {string} options.error
  */
-ol.geoIDEE.GPAltiCode = function(geom, options) {
+ol.geom.GPAltiCode = function(geom, options) {
   options = options || {};
-  var typeGeom = geoIDEE.getType();
+  var typeGeom = geom.getType();
   if (typeGeom !== 'Point' && typeGeom !== 'LineString') {
     console.warn('[GPAltiCode] '+typeGeom+' not supported...')
     return;
@@ -38841,20 +38841,20 @@ ol.geoIDEE.GPAltiCode = function(geom, options) {
   var minZ = options.minZ === undefined ? -99 : options.minZ;
   var sampling = options.sampling || 0;
   if (options.samplingDist) {
-    var d = geoIDEE.getLength();
+    var d = geom.getLength();
     sampling = Math.max(sampling, Math.round(d / options.samplingDist));
   }
   if (sampling > 5000) sampling = 5000;
   if (sampling < 2) sampling = 0;
-  geom = geoIDEE.clone().transform(proj, 'EPSG:4326');
+  geom = geom.clone().transform(proj, 'EPSG:4326');
   var g, lon = [], lat = [];
   switch (typeGeom) {
     case 'Point': {
-      g = [geoIDEE.getCoordinates()];
+      g = [geom.getCoordinates()];
       break;
     }
     case 'LineString': {
-      g = geoIDEE.getCoordinates();
+      g = geom.getCoordinates();
       break;
     }
     default: return;
@@ -38880,7 +38880,7 @@ ol.geoIDEE.GPAltiCode = function(geom, options) {
         }
       });
       if (typeGeom==='Point') pts = pts[0];
-      var result = ol.geoIDEE.createFromType(typeGeom, pts);
+      var result = ol.geom.createFromType(typeGeom, pts);
       result.transform('EPSG:4326', proj);
       if (typeof(options.success) === 'function') options.success(result);
     },
@@ -38901,8 +38901,8 @@ ol.geoIDEE.GPAltiCode = function(geom, options) {
 ol.coordinate.GPAltiCode = function(coord, options) {
   options = options || {};
   var unique = !coord[0].length;
-  var g = unique ? new ol.geoIDEE.Point(coord) : new ol.geoIDEE.LineString(coord);
-  ol.geoIDEE.GPAltiCode(g, {
+  var g = unique ? new ol.geom.Point(coord) : new ol.geom.LineString(coord);
+  ol.geom.GPAltiCode(g, {
     projection: options.projection,
     sampling: options.sampling,
     samplingDist: options.samplingDist,
@@ -38948,20 +38948,20 @@ ol.coordinate.getFeatureCenter = function(f) {
   return ol.coordinate.getGeomCenter (f.getGeometry());
 };
 /** Get center coordinate of a geometry
-* @param {ol.geoIDEE.Geometry} geom
+* @param {ol.geom.Geometry} geom
 * @return {ol.Coordinate} the center
 */
 ol.coordinate.getGeomCenter = function(geom) {
-  switch (geoIDEE.getType()) {
+  switch (geom.getType()) {
     case 'Point': 
-      return geoIDEE.getCoordinates();
+      return geom.getCoordinates();
     case "MultiPolygon":
-      geom = geoIDEE.getPolygon(0);
+      geom = geom.getPolygon(0);
       // fallthrough
     case "Polygon":
-      return geoIDEE.getInteriorPoint().getCoordinates();
+      return geom.getInteriorPoint().getCoordinates();
     default:
-      return geoIDEE.getClosestPoint(ol.extent.getCenter(geoIDEE.getExtent()));
+      return geom.getClosestPoint(ol.extent.getCenter(geom.getExtent()));
   }
 };
 /** Offset a polyline
@@ -39065,7 +39065,7 @@ ol.coordinate.findSegment = function (pt, coords) {
 ol.coordinate.splitH = function (geom, y, n) {
   var x, abs;
   var list = [];
-  for (var i=0; i<geoIDEE.length-1; i++) {
+  for (var i=0; i<geom.length-1; i++) {
     // Hole separator?
     if (!geom[i].length || !geom[i+1].length) continue;
     // Intersect
@@ -39085,15 +39085,15 @@ ol.coordinate.splitH = function (geom, y, n) {
   return result;
 };
 /** Create a geometry given a type and coordinates */
-ol.geoIDEE.createFromType = function (type, coordinates) {
+ol.geom.createFromType = function (type, coordinates) {
   switch (type) {
-    case 'LineString': return new ol.geoIDEE.LineString(coordinates);
-    case 'LinearRing': return new ol.geoIDEE.LinearRing(coordinates);
-    case 'MultiLineString': return new ol.geoIDEE.MultiLineString(coordinates);
-    case 'MultiPoint': return new ol.geoIDEE.MultiPoint(coordinates);
-    case 'MultiPolygon': return new ol.geoIDEE.MultiPolygon(coordinates);
-    case 'Point': return new ol.geoIDEE.Point(coordinates);
-    case 'Polygon': return new ol.geoIDEE.Polygon(coordinates);
+    case 'LineString': return new ol.geom.LineString(coordinates);
+    case 'LinearRing': return new ol.geom.LinearRing(coordinates);
+    case 'MultiLineString': return new ol.geom.MultiLineString(coordinates);
+    case 'MultiPoint': return new ol.geom.MultiPoint(coordinates);
+    case 'MultiPolygon': return new ol.geom.MultiPolygon(coordinates);
+    case 'Point': return new ol.geom.Point(coordinates);
+    case 'Polygon': return new ol.geom.Polygon(coordinates);
     default:
       console.error('[createFromType] Unsupported type: '+type);
       return null;
@@ -39140,15 +39140,15 @@ function splitY(pts, y) {
 }
 /** Fast polygon intersection with an extent (used for area calculation)
  * @param {ol.extent.Extent} extent
- * @param {ol.geoIDEE.Polygon|ol.geoIDEE.MultiPolygon} polygon
- * @returns {ol.geoIDEE.Polygon|ol.geoIDEE.MultiPolygon|null} return null if not a polygon geometry
+ * @param {ol.geom.Polygon|ol.geom.MultiPolygon} polygon
+ * @returns {ol.geom.Polygon|ol.geom.MultiPolygon|null} return null if not a polygon geometry
  */
 ol.extent.intersection = function(extent, polygon) {
   var poly = (polygon.getType() === 'Polygon');
   if (!poly && polygon.getType() !== 'MultiPolygon') return null;
   var geom = polygon.getCoordinates();
   if (poly) geom = [geom];
-  geoIDEE.forEach(function(g) {
+  geom.forEach(function(g) {
     g.forEach(function(c) {
       splitX(c, extent[0]);
       splitX(c, extent[2]);
@@ -39157,7 +39157,7 @@ ol.extent.intersection = function(extent, polygon) {
     });
   })
   // Snap geom to the extent 
-  geoIDEE.forEach(function(g) {
+  geom.forEach(function(g) {
     g.forEach(function(c) {
       c.forEach(function(p) {
         if (p[0]<extent[0]) p[0] = extent[0];
@@ -39168,9 +39168,9 @@ ol.extent.intersection = function(extent, polygon) {
     })
   })
   if (poly) {
-    return new ol.geoIDEE.Polygon(geom[0]);
+    return new ol.geom.Polygon(geom[0]);
   } else {
-    return new ol.geoIDEE.MultiPolygon(geom);
+    return new ol.geom.MultiPolygon(geom);
   }
 };
 })();
@@ -39200,21 +39200,21 @@ ol.coordinate.sampleAt = function(p1, p2, d, start) {
 };
 /** Sample a LineString at a distance
  * @param {number} d
- * @returns {ol.geoIDEE.LineString}
+ * @returns {ol.geom.LineString}
  */
-ol.geoIDEE.LineString.prototype.sampleAt = function(d) {
+ol.geom.LineString.prototype.sampleAt = function(d) {
   var line = this.getCoordinates();
   var result = [];
   for (var i=1; i<line.length; i++) {
     result = result.concat(ol.coordinate.sampleAt(line[i-1], line[i], d, i===1));
   }
-  return new ol.geoIDEE.LineString(result);
+  return new ol.geom.LineString(result);
 };
 /** Sample a MultiLineString at a distance
  * @param {number} d
- * @returns {ol.geoIDEE.MultiLineString}
+ * @returns {ol.geom.MultiLineString}
  */
-ol.geoIDEE.MultiLineString.prototype.sampleAt = function(d) {
+ol.geom.MultiLineString.prototype.sampleAt = function(d) {
   var lines = this.getCoordinates();
   var result = [];
   lines.forEach(function(p) {
@@ -39224,13 +39224,13 @@ ol.geoIDEE.MultiLineString.prototype.sampleAt = function(d) {
     }
     result.push(l);
   })
-  return new ol.geoIDEE.MultiLineString(result);
+  return new ol.geom.MultiLineString(result);
 };
 /** Sample a Polygon at a distance
  * @param {number} d
- * @returns {ol.geoIDEE.Polygon}
+ * @returns {ol.geom.Polygon}
  */
-ol.geoIDEE.Polygon.prototype.sampleAt = function(res) {
+ol.geom.Polygon.prototype.sampleAt = function(res) {
   var poly = this.getCoordinates();
   var result = [];
   poly.forEach(function(p) {
@@ -39240,13 +39240,13 @@ ol.geoIDEE.Polygon.prototype.sampleAt = function(res) {
     }
     result.push(l);
   })
-  return new ol.geoIDEE.Polygon(result);
+  return new ol.geom.Polygon(result);
 };
 /** Sample a MultiPolygon at a distance
  * @param {number} res
- * @returns {ol.geoIDEE.MultiPolygon}
+ * @returns {ol.geom.MultiPolygon}
  */
-ol.geoIDEE.MultiPolygon.prototype.sampleAt = function(res) {
+ol.geom.MultiPolygon.prototype.sampleAt = function(res) {
   var mpoly = this.getCoordinates();
   var result = [];
   mpoly.forEach(function(poly) {
@@ -39260,23 +39260,23 @@ ol.geoIDEE.MultiPolygon.prototype.sampleAt = function(res) {
       a.push(l);
     })
   });
-  return new ol.geoIDEE.MultiPolygon(result);
+  return new ol.geom.MultiPolygon(result);
 };
 /** Intersect a geometry using a circle
- * @param {ol.geoIDEE.Geometry} geom
+ * @param {ol.geom.Geometry} geom
  * @param {number} resolution circle resolution to sample the polygon on the circle, default 1
- * @returns {ol.geoIDEE.Geometry}
+ * @returns {ol.geom.Geometry}
  */
-ol.geoIDEE.Circle.prototype.intersection = function(geom, resolution) {
-  if (geoIDEE.sampleAt) {
+ol.geom.Circle.prototype.intersection = function(geom, resolution) {
+  if (geom.sampleAt) {
     var ext = ol.extent.buffer(this.getCenter().concat(this.getCenter()), this.getRadius());
     geom = ol.extent.intersection(ext, geom);
-    geom = geoIDEE.simplify(resolution);
+    geom = geom.simplify(resolution);
     var c = this.getCenter();
     var r = this.getRadius();
     //var res = (resolution||1) * r / 100;
-    var g = geoIDEE.sampleAt(resolution).getCoordinates();
-    switch (geoIDEE.getType()) {
+    var g = geom.sampleAt(resolution).getCoordinates();
+    switch (geom.getType()) {
       case 'Polygon': g = [g];
         // fallthrough
       case 'MultiPolygon': {
@@ -39305,15 +39305,15 @@ ol.geoIDEE.Circle.prototype.intersection = function(geom, resolution) {
           })
         });
         if (!hasout) return geom;
-        if (geoIDEE.getType() === 'Polygon') {
-          return new ol.geoIDEE.Polygon(result[0]);
+        if (geom.getType() === 'Polygon') {
+          return new ol.geom.Polygon(result[0]);
         } else {
-          return new ol.geoIDEE.MultiPolygon(result);
+          return new ol.geom.MultiPolygon(result);
         }
       }
     }
   } else {
-    console.warn('[ol/geom/Circle~intersection] Unsupported geometry type: '+geoIDEE.getType());
+    console.warn('[ol/geom/Circle~intersection] Unsupported geometry type: '+geom.getType());
   }
   return geom;
 };
@@ -39323,7 +39323,7 @@ ol.geoIDEE.Circle.prototype.intersection = function(geom, resolution) {
  * @param {ol.Coordinate | Array<ol.Coordinate>} pt points to split the line
  * @param {Number} tol distance tolerance for 2 points to be equal
  */
-ol.geoIDEE.LineString.prototype.splitAt = function(pt, tol) {
+ol.geom.LineString.prototype.splitAt = function(pt, tol) {
   var i;
   if (!pt) return [this];
     if (!tol) tol = 1e-10;
@@ -39355,7 +39355,7 @@ ol.geoIDEE.LineString.prototype.splitAt = function(pt, tol) {
       // Extremity found
       if (ol.coordinate.equal(pt,c0[i+1])) {
         ci.push(c0[i+1]);
-        c.push(new ol.geoIDEE.LineString(ci));
+        c.push(new ol.geom.LineString(ci));
         ci = [];
       }
       // Test alignement
@@ -39375,13 +39375,13 @@ ol.geoIDEE.LineString.prototype.splitAt = function(pt, tol) {
         // pt is inside the segment > split
         if (split) {
           ci.push(pt);
-          c.push (new ol.geoIDEE.LineString(ci));
+          c.push (new ol.geom.LineString(ci));
           ci = [pt];
         }
       }
       ci.push(c0[i+1]);
     }
-    if (ci.length>1) c.push (new ol.geoIDEE.LineString(ci));
+    if (ci.length>1) c.push (new ol.geom.LineString(ci));
     if (c.length) return c;
     else return [this];
 }
@@ -39397,9 +39397,9 @@ ol.geoIDEE.LineString.prototype.splitAt = function(pt, tol) {
  * @param {} options
  *  @param {Number} options.interval interval beetween lines
  *  @param {Number} options.angle hatch angle in radian, default PI/2
- * @return {ol.geoIDEE.MultiLineString|null} the resulting MultiLineString geometry or null if none
+ * @return {ol.geom.MultiLineString|null} the resulting MultiLineString geometry or null if none
  */
-ol.geoIDEE.MultiPolygon.prototype.scribbleFill = function (options) {
+ol.geom.MultiPolygon.prototype.scribbleFill = function (options) {
   var scribbles = [];
   var poly = this.getPolygons();
   var i, p, s;
@@ -39424,16 +39424,16 @@ ol.geoIDEE.MultiPolygon.prototype.scribbleFill = function (options) {
  * @param {} options
  *  @param {Number} options.interval interval beetween lines
  *  @param {Number} options.angle hatch angle in radian, default PI/2
- * @return {ol.geoIDEE.MultiLineString|null} the resulting MultiLineString geometry or null if none
+ * @return {ol.geom.MultiLineString|null} the resulting MultiLineString geometry or null if none
  */
-ol.geoIDEE.Polygon.prototype.scribbleFill = function (options) {
+ol.geom.Polygon.prototype.scribbleFill = function (options) {
 	var step = options.interval;
   var angle = options.angle || Math.PI/2;
   var i, k,l;
   // Geometry + rotate
 	var geom = this.clone();
-	geoIDEE.rotate(angle, [0,0]);
-  var coords = geoIDEE.getCoordinates();
+	geom.rotate(angle, [0,0]);
+  var coords = geom.getCoordinates();
   // Merge holes
   var coord = coords[0];
   for (i=1; i<coords.length; i++) {
@@ -39443,7 +39443,7 @@ ol.geoIDEE.Polygon.prototype.scribbleFill = function (options) {
     coord = coord.concat(coords[i]);
   }
   // Extent 
-	var ext = geoIDEE.getExtent();
+	var ext = geom.getExtent();
 	// Split polygon with horizontal lines
   var lines = [];
 	for (var y = (Math.floor(ext[1]/step)+1)*step; y<ext[3]; y += step) {
@@ -39499,24 +39499,24 @@ ol.geoIDEE.Polygon.prototype.scribbleFill = function (options) {
   }
   // Return the scribble as MultiLineString
   if (!scribble.length) return null;
-  var mline = new ol.geoIDEE.MultiLineString(scribble);
+  var mline = new ol.geom.MultiLineString(scribble);
   mline.rotate(-angle,[0,0]);
 	return mline.cspline({ pointsPerSeg:8, tension:.9 });
 };
 /** Calculate a MultiPolyline to fill a geomatry (Polygon or MultiPolygon) with a scribble effect that appears hand-made
- * @param {ol.geoIDEE.Geometry} geom the geometry to scribble
+ * @param {ol.geom.Geometry} geom the geometry to scribble
  * @param {Object} options
  *  @param {Number} options.interval interval beetween lines
  *  @param {Number} options.angle hatch angle in radian, default PI/2
- * @return {ol.geoIDEE.Geometry} the resulting MultiLineString geometry or initial geometry
+ * @return {ol.geom.Geometry} the resulting MultiLineString geometry or initial geometry
  */
-ol.geoIDEE.scribbleFill = function(geom, options) {
-  switch (geoIDEE.getType()) {
+ol.geom.scribbleFill = function(geom, options) {
+  switch (geom.getType()) {
     case 'Polygon': {
-      return ol.geoIDEE.Polygon.prototype.scribbleFill.call(geom, options)
+      return ol.geom.Polygon.prototype.scribbleFill.call(geom, options)
     }
     case 'MultiPolygon': {
-      return ol.geoIDEE.MultiPolygon.prototype.scribbleFill.call(geom, options)
+      return ol.geom.MultiPolygon.prototype.scribbleFill.call(geom, options)
     }
     default: return geom
   }
@@ -39528,7 +39528,7 @@ ol.geoIDEE.scribbleFill = function(geom, options) {
  * @param {Object=} options 
  * @api
  */
-ol.geoIDEE.Simplificator = class olgeomSimplificator extends ol.Object {
+ol.geom.Simplificator = class olgeomSimplificator extends ol.Object {
   constructor(options) {
     super(options);
     this._edges = [];
@@ -39689,7 +39689,7 @@ ol.geoIDEE.Simplificator = class olgeomSimplificator extends ol.Object {
         };
         /* DEBUG * /
         edge.feature = new ol.Feature({
-          geometry: new ol.geoIDEE.LineString(a.seg),
+          geometry: new ol.geom.LineString(a.seg),
           edge: edge.edge,
           prev: edge.prev
         })
@@ -39796,8 +39796,8 @@ ol.geoIDEE.Simplificator = class olgeomSimplificator extends ol.Object {
     edges.forEach(function(f) { 
       if (!f.del) {
         result.push(new ol.Feature({
-          geometry: new ol.geoIDEE.LineString(f.geometry),
-          geom: new ol.geoIDEE.LineString(f.geometry),
+          geometry: new ol.geom.LineString(f.geometry),
+          geom: new ol.geom.LineString(f.geometry),
           edge: f.edge,
           prev: f.prev
         }));
@@ -40043,7 +40043,7 @@ ol.sphere.greatCircleTrack = function(origin, destination, options) {
   var d = distance;
   var geom = [origin];
   while (d < dist) {
-    geoIDEE.push(ol.sphere.computeDestinationPoint(origin, d, bearing, { radius: options.radius, normalize: false }));
+    geom.push(ol.sphere.computeDestinationPoint(origin, d, bearing, { radius: options.radius, normalize: false }));
     d += distance;
   }
   var pt = ol.sphere.computeDestinationPoint(origin, dist, bearing, { radius: options.radius, normalize: false });
@@ -40051,7 +40051,7 @@ ol.sphere.greatCircleTrack = function(origin, destination, options) {
     if (pt[0] > destination[0]) destination[0] += 360;
     else destination[0] -= 360;
   } 
-  geoIDEE.push(destination);
+  geom.push(destination);
   return geom;
 };
 /** Get map scale factor
@@ -40112,7 +40112,7 @@ ol.sphere.setMapScale = function (map, scale, dpi) {
 (function () {
 /**
  * Visvalingam polyline simplification algorithm, adapted from http://bost.ocks.org/mike/simplify/simplify.js
- * This uses the [Visvalingam–Whyatt](https://en.wikipedia.org/wiki/Visvalingam%E2%80%93Whyatt_algorithm) algorithIDEE.
+ * This uses the [Visvalingam–Whyatt](https://en.wikipedia.org/wiki/Visvalingam%E2%80%93Whyatt_algorithm) algorithm.
  * @param {Object} options
  *  @param {number} [area] the tolerance area for simplification
  *  @param {number} [dist] a tolerance distance for simplification
@@ -40122,10 +40122,10 @@ ol.sphere.setMapScale = function (map, scale, dpi) {
  * @return { LineString } A new, simplified version of the original geometry.
  * @api
  */
-ol.geoIDEE.LineString.prototype.simplifyVisvalingam = function (options) {
+ol.geom.LineString.prototype.simplifyVisvalingam = function (options) {
   var points = this.getCoordinates();
   if (options.minPoints && options.minPoints >= points.length) {
-    return new ol.geoIDEE.LineString(points);
+    return new ol.geom.LineString(points);
   }
   var heap = minHeap(),
       maxArea = 0,
@@ -40204,7 +40204,7 @@ ol.geoIDEE.LineString.prototype.simplifyVisvalingam = function (options) {
     if (!ol.coordinate.equal(result[0], points[0])) result.unshift(points[0]);
     if (!ol.coordinate.equal(result[result.length-1], points[points.length-1])) result.push(points[points.length-1]);
   }
-  return new ol.geoIDEE.LineString(result);
+  return new ol.geom.LineString(result);
 };
 function compare(a, b) {
   return a[1][2] - b[1][2];
@@ -40341,9 +40341,9 @@ ol.Map.prototype.animExtent = function(extent, options){
  *	@param {Number} options.tension a [0,1] number / can be interpreted as the "length" of the tangent, default 0.5
  *  @param {Number} options.resolution size of segment to split
  *	@param {Integer} options.pointsPerSeg number of points per segment to add if no resolution is provided, default add 10 points per segment
- * @return {ol.geoIDEE.Geometry}
+ * @return {ol.geom.Geometry}
  */
-ol.geoIDEE.Geometry.prototype.cspline = function(options){
+ol.geom.Geometry.prototype.cspline = function(options){
   // Calculate cspline
   if (this.calcCSpline_){
     if (this.csplineGeometryRevision != this.getRevision() 
@@ -40358,41 +40358,41 @@ ol.geoIDEE.Geometry.prototype.cspline = function(options){
     return this;
   }
 };
-ol.geoIDEE.GeometryCollection.prototype.calcCSpline_ = function(options) {
+ol.geom.GeometryCollection.prototype.calcCSpline_ = function(options) {
   var g=[], g0=this.getGeometries();
   for (var i=0; i<g0.length; i++) {
     g.push(g0[i].cspline(options));
   }
-  return new ol.geoIDEE.GeometryCollection(g);
+  return new ol.geom.GeometryCollection(g);
 };
-ol.geoIDEE.MultiLineString.prototype.calcCSpline_ = function(options) {
+ol.geom.MultiLineString.prototype.calcCSpline_ = function(options) {
   var g=[], lines = this.getLineStrings();
   for (var i=0; i<lines.length; i++) {
     g.push(lines[i].cspline(options).getCoordinates());
   }
-  return new ol.geoIDEE.MultiLineString(g);
+  return new ol.geom.MultiLineString(g);
 };
-ol.geoIDEE.Polygon.prototype.calcCSpline_ = function(options){
+ol.geom.Polygon.prototype.calcCSpline_ = function(options){
   var g=[], g0=this.getCoordinates();
   for (var i=0; i<g0.length; i++){
-    g.push((new ol.geoIDEE.LineString(g0[i])).cspline(options).getCoordinates());
+    g.push((new ol.geom.LineString(g0[i])).cspline(options).getCoordinates());
   }
-  return new ol.geoIDEE.Polygon(g);
+  return new ol.geom.Polygon(g);
 };
-ol.geoIDEE.MultiPolygon.prototype.calcCSpline_ = function(options) {
+ol.geom.MultiPolygon.prototype.calcCSpline_ = function(options) {
   var g=[], g0=this.getPolygons();
   for (var i=0; i<g0.length; i++) {
     g.push(g0[i].cspline(options).getCoordinates());
   }
-  return new ol.geoIDEE.MultiPolygon(g);
+  return new ol.geom.MultiPolygon(g);
 }
 /** Calculate cspline on coordinates
- * @param {Array<ol.geoIDEE.Geometry.coordinate>} line
+ * @param {Array<ol.geom.Geometry.coordinate>} line
  * @param {} options
  *	@param {Number} options.tension a [0,1] number / can be interpreted as the "length" of the tangent, default 0.5
  *  @param {Number} options.resolution size of segment to split
  *	@param {Integer} options.pointsPerSeg number of points per segment to add if no resolution is provided, default add 10 points per segment
- * @return {Array<ol.geoIDEE.Geometry.coordinate>}
+ * @return {Array<ol.geom.Geometry.coordinate>}
  */
 ol.coordinate.cspline = function(line, options) {
   if (!options) options={};
@@ -40408,7 +40408,7 @@ ol.coordinate.cspline = function(line, options) {
     x, y,               // our x,y coords
     t1x, t2x, t1y, t2y,	// tension vectors
     c1, c2, c3, c4,     // cardinal points
-    st, t, i;           // steps based on nuIDEE. of segments
+    st, t, i;           // steps based on num. of segments
   // clone array so we don't change the original
   //
   pts = line.slice(0);
@@ -40464,10 +40464,10 @@ ol.coordinate.cspline = function(line, options) {
   return res;
 };
 /** @private */
-ol.geoIDEE.LineString.prototype.calcCSpline_ = function(options) {
+ol.geom.LineString.prototype.calcCSpline_ = function(options) {
   var line = this.getCoordinates();
   var res = ol.coordinate.cspline(line, options)
-  return new ol.geoIDEE.LineString(res);
+  return new ol.geom.LineString(res);
 }
 // To use this module with ol/geom/Geometry
 // 
@@ -40810,8 +40810,8 @@ ol.InseeGrid = class olInseeGrid extends ol.Object {
     var s = this.get('size');
     var x = Math.floor(c[0] / s) * s;
     var y = Math.floor(c[1] / s) * s;
-    var geom = new ol.geoIDEE.Polygon([[[x, y], [x + s, y], [x + s, y + s], [x, y + s], [x, y]]]);
-    geoIDEE.transform('EPSG:3035', proj || 'EPSG:3857');
+    var geom = new ol.geom.Polygon([[[x, y], [x + s, y], [x + s, y + s], [x, y + s], [x, y]]]);
+    geom.transform('EPSG:3035', proj || 'EPSG:3857');
     return geom;
   }
 }
@@ -40873,7 +40873,7 @@ ol.Map.prototype.markup = function(coords, options)
 				var sc = imgs.getScale(); 
 				imgs.setScale(sc*ratio);
 				event.vectorContext.setStyle(style[i]);
-				event.vectorContext.drawGeometry(new ol.geoIDEE.Point(coords));
+				event.vectorContext.drawGeometry(new ol.geom.Point(coords));
 				imgs.setScale(sc);
 			}
 			context.restore();
@@ -40994,7 +40994,7 @@ ol.Map.prototype.pulse = function(coords, options) {
         var sc = imgs.getScale(); 
         imgs.setScale(ratio*sc*(1+amplitude*(e-1)));
         event.vectorContext.setStyle(style[i]);
-        event.vectorContext.drawGeometry(new ol.geoIDEE.Point(coords));
+        event.vectorContext.drawGeometry(new ol.geom.Point(coords));
         imgs.setScale(sc);
       }
       context.restore();
@@ -42126,7 +42126,7 @@ ol.style.FlowLine = class olstyleFlowLine extends ol.style.Style {
       if (this.getOffset(1))
         this._splitAsize(geom, this.getOffset(1) * e.pixelRatio, true)
       // Arrow 1
-      if (geoIDEE.length > 1 && (this.getArrow() === -1 || this.getArrow() === 2)) {
+      if (geom.length > 1 && (this.getArrow() === -1 || this.getArrow() === 2)) {
         p = this._splitAsize(geom, asize)
         if (this._acolor)
           ctx.fillStyle = this._acolor
@@ -42135,7 +42135,7 @@ ol.style.FlowLine = class olstyleFlowLine extends ol.style.Style {
         this.drawArrow(ctx, p[0], p[1], this.getWidth(e.feature, 0), e.pixelRatio)
       }
       // Arrow 2 
-      if (geoIDEE.length > 1 && this.getArrow() > 0) {
+      if (geom.length > 1 && this.getArrow() > 0) {
         p = this._splitAsize(geom, asize, true)
         if (this._acolor)
           ctx.fillStyle = this._acolor
@@ -42168,7 +42168,7 @@ ol.style.FlowLine = class olstyleFlowLine extends ol.style.Style {
     }
   }
   /** Split extremity at
-   * @param {ol.geoIDEE.LineString} geom
+   * @param {ol.geom.LineString} geom
    * @param {number} asize
    * @param {boolean} end start=false or end=true, default false (start)
    */
@@ -42176,27 +42176,27 @@ ol.style.FlowLine = class olstyleFlowLine extends ol.style.Style {
     var p, p1, p0
     var dl, d = 0
     if (end)
-      p0 = geoIDEE.pop()
+      p0 = geom.pop()
     else
-      p0 = geoIDEE.shift()
+      p0 = geom.shift()
     p = p0
-    while (geoIDEE.length) {
+    while (geom.length) {
       if (end)
-        p1 = geoIDEE.pop()
+        p1 = geom.pop()
       else
-        p1 = geoIDEE.shift()
+        p1 = geom.shift()
       dl = ol.coordinate.dist2d(p, p1)
       if (d + dl > asize) {
         p = [p[0] + (p1[0] - p[0]) * (asize - d) / dl, p[1] + (p1[1] - p[1]) * (asize - d) / dl]
         dl = ol.coordinate.dist2d(p, p0)
         if (end) {
-          geoIDEE.push(p1)
-          geoIDEE.push(p)
-          geoIDEE.push([p[0] + (p0[0] - p[0]) / dl, p[1] + (p0[1] - p[1]) / dl])
+          geom.push(p1)
+          geom.push(p)
+          geom.push([p[0] + (p0[0] - p[0]) / dl, p[1] + (p0[1] - p[1]) / dl])
         } else {
-          geoIDEE.unshift(p1)
-          geoIDEE.unshift(p)
-          geoIDEE.unshift([p[0] + (p0[0] - p[0]) / dl, p[1] + (p0[1] - p[1]) / dl])
+          geom.unshift(p1)
+          geom.unshift(p)
+          geom.unshift([p[0] + (p0[0] - p[0]) / dl, p[1] + (p0[1] - p[1]) / dl])
         }
         break
       }
@@ -42225,7 +42225,7 @@ ol.style.FlowLine = class olstyleFlowLine extends ol.style.Style {
     var g = [p0]
     i = 1
     p = geom[1]
-    while (i < geoIDEE.length) {
+    while (i < geom.length) {
       var dx = p[0] - p0[0]
       var dy = p[1] - p0[1]
       dl = Math.sqrt(dx * dx + dy * dy)
@@ -43039,7 +43039,7 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
  *  @param {ol.style.Fill} options.fill 
  *  @param {number} options.scale z scale 
  *  @param {number} options.zIndex 
- *  @param {ol.geoIDEE.Geometry} options.geometry 
+ *  @param {ol.geom.Geometry} options.geometry 
  */
 ol.style.Profile = class olstyleProfile extends ol.style.Style {
   constructor(options) {
@@ -43858,8 +43858,8 @@ function troncon_de_route(options) {
   // Get rotation on the center of the line
   var lrot = function (geom) {
     //if (sens != options.direct && sens != options.inverse) return 0;
-    var geo = geoIDEE.getCoordinates();
-    var x, y, dl=0, l = geoIDEE.getLength();
+    var geo = geom.getCoordinates();
+    var x, y, dl=0, l = geom.getLength();
     for (var i=0; i<geo.length-1; i++) {
       x = geo[i+1][0]-geo[i][0];
       y = geo[i+1][1]-geo[i][1];

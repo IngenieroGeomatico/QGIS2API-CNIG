@@ -6,14 +6,14 @@
 name=QGIS2API-IDEE
 qgisMinimumVersion=3.0
 description=Complemento que crea un visualizador cartográfico con el contenido del lienzo de QGIS
-version=0.8
+version=0.9
 author=IngenieroGeomatico
 email=aurearagon@gmail.com
 
 about=Este complemento exporta un visualizador cartográfico API-IDEE a partir de los datos cargados en el mapa. 
 
-tracker=https://github.com/IngenieroGeomatico/QGIS2API-IDEE
-repository=https://github.com/IngenieroGeomatico/QGIS2API-IDEE
+tracker=https://github.com/IngenieroGeomatico/QGIS2API-CNIG
+repository=https://github.com/IngenieroGeomatico/QGIS2API-CNIG
 # End of mandatory metadata
 
 # Recommended items:
@@ -23,9 +23,9 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python, API-IDEE, visualizador, OpenLayers
+tags=python, API-CNIG, MAPEA, API-IDEE, visualizador, OpenLayers, Cesium
 
-homepage=https://github.com/IngenieroGeomatico/QGIS2API-IDEE
+homepage=https://github.com/IngenieroGeomatico/QGIS2API-CNIG
 category=Web
 icon=icon.png
 # experimental flag

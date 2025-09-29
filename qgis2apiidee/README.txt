@@ -1,10 +1,10 @@
 Plugin Builder Results
 
 Your plugin QGIS2APIIDEE was created in:
-    C:/Users/aurelio.aragon/OneDrive - MITMA/Escritorio/Proyectos/2024/1_QGIS2APIIDEE\QGIS2APIIDEE
+    .../1_QGIS2APIIDEE\QGIS2APIIDEE
 
 Your QGIS plugin directory is located at:
-    C:/Users/aurelio.aragon/AppData/Roaming/QGIS/QGIS3/profiles/default/python/plugins
+    ...QGIS/QGIS3/profiles/default/python/plugins
 
 What's Next:
 
@@ -20,6 +20,7 @@ What's Next:
   * Customize it by editing the implementation file: ``QGIS2APIIDEE.py``
 
   * Create your own custom icon, replacing the default icon.png
+    pyrcc5 -o resources.py resources.qrc
 
   * Modify your user interface by opening QGIS2APIIDEE_dialog_base.ui in Qt Designer
 

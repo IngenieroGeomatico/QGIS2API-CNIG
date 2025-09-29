@@ -5,7 +5,7 @@
 [general]
 name=QGIS2API-CNIG
 qgisMinimumVersion=3.0
-description=Complemento que crea un visualizador cartográfico con el contenido del lienzo de QGIS
+description=Este plugin ha sido reemplazado por 'QGIS2APIIDEE'. Puedes instalarlo desde el repositorio oficial. Complemento que crea un visualizador cartográfico con el contenido del lienzo de QGIS
 version=0.7
 author=IngenieroGeomatico
 email=aurearagon@gmail.com

@@ -221,8 +221,8 @@ class QGIS2APIIDEEDialog(QtWidgets.QDialog, FORM_CLASS):
         # Comprobación plugins
         if checkBox_checkBox_SelectorCapas:
             headerImports = """
-                            <link href="https://componentes.idee.es/api-idee/plugins/layerswitcher/layerswitcher-2.0.0.ol.min.css" rel="stylesheet" />
-                            <script type="text/javascript" src="https://componentes.idee.es/api-idee/plugins/layerswitcher/layerswitcher-2.0.0.ol.min.js"></script>
+                            <link href="https://componentes.idee.es/api-idee/plugins/layerswitcher/layerswitcher-1.0.0.ol.min.css" rel="stylesheet" />
+                            <script type="text/javascript" src="https://componentes.idee.es/api-idee/plugins/layerswitcher/layerswitcher-1.0.0.ol.min.js"></script>
             """
             stringplugin = """
                             const mp_selectorCapa = new IDEE.plugin.Layerswitcher({
